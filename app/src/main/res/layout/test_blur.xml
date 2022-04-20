@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/main_blur_layout"
+    android:background="@color/bordeaux"
+    >
+
+    <eightbitlab.com.blurview.BlurView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/blur_layout"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_margin="15dp"
+            >
+
+            <ImageView
+                android:id="@+id/music_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="7"
+                android:adjustViewBounds="true"
+                android:src="@drawable/id_song_icon"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="11"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="5dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/music_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/song_default_name"
+                    android:gravity="center_horizontal"
+                    android:layout_marginBottom="5dp"
+                    android:textColor="@color/black"
+                    android:textSize="26sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/music_author"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/author_default_name"
+                    android:gravity="center_horizontal"
+                    android:layout_marginBottom="10dp"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
+            <SeekBar
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="10dp"
+                android:id="@+id/seek_bar"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="11"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="30dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="85px"
+                    android:layout_weight="4"
+                    android:src="@drawable/heart"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="100px"
+                    android:layout_weight="4"
+                    android:src="@drawable/previous"/>
+
+                <ImageView
+                    android:id="@+id/pause_play_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="150px"
+                    android:layout_weight="4"
+                    android:src="@drawable/pause"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="100px"
+                    android:layout_weight="4"
+                    android:src="@drawable/next"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="85px"
+                    android:layout_weight="4"
+                    android:src="@drawable/repeat"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+
+    </eightbitlab.com.blurview.BlurView>
+
+</LinearLayout>

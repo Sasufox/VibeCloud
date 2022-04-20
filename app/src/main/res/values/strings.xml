@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">VibeCloud</string>
+    <string name="play_song_btn">Jouer la musique</string>
+    <string name="search_song_btn">Search music</string>
+    <string name="song_default_name">Music Unknown</string>
+    <string name="author_default_name">Author Unknown</string>
+    <string name="styled_welcome_message"><b><i>Welcome to VibeCloud</i></b></string>
+    <string name="create_new_account"><b><i>Create new account</i></b></string>
+    <string name="sign_in"><b><i>Already an account / Sign in</i></b></string>
+</resources>

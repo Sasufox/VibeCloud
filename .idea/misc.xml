@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable-v24/background.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable/accueil_panel.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable/background.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable/blur_test.xml" value="0.3828125" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable/ic_launcher_background.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable/search_layout.xml" value="0.2604166666666667" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/drawable/search_panel.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/accueil_panel.xml" value="0.25" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/activity_music_listening.xml" value="0.22" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/activity_music_selection.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/activity_search_test.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/adapter_artists_home_panel.xml" value="0.24427083333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/adapter_song.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/adapter_song_test2.xml" value="0.33" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/adapter_top_song_home.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/grid_item.xml" value="0.25" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/gv.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/list_item_accueil_panel.xml" value="0.25" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/search_panel.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/test.xml" value="0.25" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/test_adapter_song.xml" value="0.24427083333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/test_blur.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/test_create_account.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/test_login_activity.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/layout/test_nav.xml" value="0.3645833333333333" />
+        <entry key="..\:/Users/Sasufox/AndroidStudioProjects/VibeCloud2/app/src/main/res/menu/bottom_navigation.xml" value="0.36666666666666664" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
