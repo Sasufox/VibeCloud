@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,12 @@ import androidx.annotation.RequiresApi;
 
 import com.bumptech.glide.Glide;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ListArtistAdapter extends BaseAdapter {
@@ -64,7 +71,12 @@ public class ListArtistAdapter extends BaseAdapter {
         authorNameView.setText(name);
         Glide.with(context).load(image).into(authorImageView);
 
+        view.setOnClickListener(new View.OnClickListener() {
 
+            @Override
+            public void onClick(View view) {
+            }
+        });
 
         return view;
     }

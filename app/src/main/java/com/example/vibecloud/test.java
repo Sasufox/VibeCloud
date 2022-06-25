@@ -1,159 +1,466 @@
 package com.example.vibecloud;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.bumptech.glide.Glide;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class test extends AppCompatActivity {
-    Button search_song_btn, next;
-    ImageView heart;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import eightbitlab.com.blurview.BlurView;
+import eightbitlab.com.blurview.RenderScriptBlur;
+
+public class test extends AppCompatActivity implements MediaPlayer.OnCompletionListener {
+
+    //fields
+    TextView nameView, authorView;
+    ImageView imageView, play_pause, nextSong, previousSong, repeat;
+    SeekBar seekbar;
+    private int loop=0;
     public volatile String json_return;
-    private MediaPlayer mediaPlayer;
-    ArrayList<Music> listMusic = new ArrayList();
-    ArrayList<Artist> listArtist = new ArrayList();
+    public ArrayList<Music> listMusicNext = new ArrayList();
+    private String web_song_url;
+    Context context = this;
+    private ArrayList<Music> recommendation = new ArrayList();
+
+    private int index_playlist, max;
+
+    TextView current, missed;
+
+    BlurView blurView;
+    MediaPlayer mediaPlayer;
+    Music song;
+    String image_url, name, author;
+    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_music_listening);
 
-        setContentView(R.layout.test);
-
-        if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
-        }
-        if (Build.VERSION.SDK_INT >= 19) {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Window w = getWindow();
+            w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         }
 
-        if (Build.VERSION.SDK_INT >= 21) {
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        //extracting infos from previously Activity
+        Intent intent = getIntent();
+        Bundle args = intent.getBundleExtra("bundle_recommendation");
+        recommendation = (ArrayList<Music>) args.getSerializable("recommendation");
+
+        for (int i=0; i<recommendation.size(); i++){
+            System.out.println(recommendation.get(i).getName());
         }
 
-        listMusic.add(new Music("Playground (from the series Arcane League of Legends)", "Bea Miller", "https://lh3.googleusercontent.com/J0ilK6Uhqjx9XlBA1q1uy3SrI4Q_5U-aSZ08xOgoQdRJI6kPRqrdLVzv-LDDcfbBD94Yig9IIZezX1x8=w120-h120-l90-rj"));
-        listMusic.add(new Music("Rise (feat. Jack & Jack)", "Jonas Blue", "https://lh3.googleusercontent.com/358VKElmVdAaa_-nruzxHhz3bBE1GGtRM_EjfOeNOakV_s4u0ot2PvFxhPAzmQuD9-j66T7M8pevKaYC=w120-h120-l90-rj"));
-        listMusic.add(new Music("RISE (feat. The Word Alive)", "League of Legends", "https://lh3.googleusercontent.com/9wphzJXb9UONKjd90QpXiyoqRSxg1nd60bjUVnEMN1-f8k1OyB_sDMk40_bEPtxHn2tPbofPRvDRbIpG=w120-h120-l90-rj"));
-        listMusic.add(new Music("Rise (feat. Jack & Jack)", "Jonas Blue", "https://lh3.googleusercontent.com/358VKElmVdAaa_-nruzxHhz3bBE1GGtRM_EjfOeNOakV_s4u0ot2PvFxhPAzmQuD9-j66T7M8pevKaYC=w120-h120-l90-rj"));
-        listMusic.add(new Music("Rise (feat. Jack & Jack)", "Jonas Blue", "https://lh3.googleusercontent.com/358VKElmVdAaa_-nruzxHhz3bBE1GGtRM_EjfOeNOakV_s4u0ot2PvFxhPAzmQuD9-j66T7M8pevKaYC=w120-h120-l90-rj"));
-        listMusic.add(new Music("Rise (feat. Jack & Jack)", "Jonas Blue", "https://lh3.googleusercontent.com/358VKElmVdAaa_-nruzxHhz3bBE1GGtRM_EjfOeNOakV_s4u0ot2PvFxhPAzmQuD9-j66T7M8pevKaYC=w120-h120-l90-rj"));
+        song = recommendation.get(index_playlist);
+        String name = song.getName();
+        String author = song.getAuthor();
+        image_url = song.getImage();
+        web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
 
-        //GridView gridView = findViewById(R.id.grid_pop_songs);
-        ExpandableHeightGridView mAppsGrid = (ExpandableHeightGridView) findViewById(R.id.grid_pop_songs);
-        mAppsGrid.setExpanded(true);
-        GridAdapter adapter = new GridAdapter(this, listMusic);
-        mAppsGrid.setAdapter(adapter);
-        mAppsGrid.setScrollbarFadingEnabled(true);
+        current = findViewById(R.id.song_current);
+        missed = findViewById(R.id.song_missed);
 
-        listArtist.add(new Artist("BTS", "https://lh3.googleusercontent.com/kwdukSZuJEoHBNLDqNbHH1k2wexAndmTNZXu1J_Yy-0dkdxfwh4eWb2-JJ-lhMlHz0IrUqlOVIO3cgE=w120-h120-p-l90-rj"));
-        listArtist.add(new Artist("TWICE", "https://lh3.googleusercontent.com/U4t11qqzjnSvqTaddAmJH1R_MQSODlc8XmmD2uyza4LHvZMfcMBgEDBqRG8z_66DhkVu0bUaGC36sOMN=w120-h120-p-l90-rj"));
-        listArtist.add(new Artist("YOASOBI", "https://lh3.googleusercontent.com/1R7O2eSFP8Xv2bVPmyc8dB_HnLK723RizDuNT5x4MyLReA_7PFbI8OUnsuAYvo-VGdOabf_FqoBbFtY=w120-h120-p-l90-rj"));
+        //Setting variables uptoDate
+        nameView = findViewById(R.id.music_name);
+        authorView = findViewById(R.id.music_author);
+        imageView = findViewById(R.id.music_image);
+        play_pause = findViewById(R.id.pause_play_image);
+        seekbar = findViewById(R.id.seek_bar);
 
-        //AUTHOR
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.popular_artists_list);
+        nextSong = findViewById(R.id.next);
+        previousSong = findViewById(R.id.previous);
+        blurView = findViewById(R.id.blur_layout);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        recyclerView.setLayoutManager(layoutManager);
+        nameView.setText(name);
+        authorView.setText(author);
 
-        RecyclerViewAdapter artistAdapter = new RecyclerViewAdapter(this, listArtist);
-        recyclerView.setAdapter(artistAdapter);
+        repeat = findViewById(R.id.repeat);
 
-        //TOP SONGS
-        RecyclerView songsRecyclerView = (RecyclerView) findViewById(R.id.popular_songs_list);
+        //Starting song
+        mediaPlayer = new MediaPlayer();
 
-        LinearLayoutManager layoutTopSongs = new LinearLayoutManager(this);
-        layoutTopSongs.setOrientation(LinearLayoutManager.HORIZONTAL);
-        songsRecyclerView.setLayoutManager(layoutTopSongs);
-
-        ListTopSongsAdapter topSongsAdapter = new ListTopSongsAdapter(this, listMusic);
-        songsRecyclerView.setAdapter(topSongsAdapter);
-
-
-        heart = findViewById(R.id.heart);
-
-        heart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String search = "{\"query\": \"" + "League of legends" + "\"}";
-                String url = MusicSelection.url_base + "search";
-                System.out.println(search);
-                System.out.println(url);
-
-                json_return = null;
-
-                Thread t = new Thread() {
-                    public void run() {
-                        json_return = MainActivity.sendRequest(url, search);
-                    }
-                };
-                t.start();
+        Thread t = new Thread() {
+            public void run() {
+                InputStream is = null;
                 try {
-                    t.join();
-                } catch (InterruptedException e) {
+                    is = (InputStream) new URL(image_url).getContent();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Drawable d = Drawable.createFromStream(is, "blurry image");
+                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                linearLayout.setBackgroundDrawable(d);
+            }
+        };
+        web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
 
-                Intent otherActivity = new Intent(getApplicationContext(), test.class);
-                if (json_return != null)
-                    otherActivity.putExtra("key", json_return);
-                startActivity(otherActivity);
-                finish();
+        try {
+            mediaPlayer.setDataSource(web_song_url);
+            mediaPlayer.prepareAsync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        timer=new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                while (!mediaPlayer.isPlaying());
+                max = mediaPlayer.getDuration()/1000;
+                seekbar.setMax(max);
+                seekbar.setProgress(mediaPlayer.getCurrentPosition()/1000);
+
+                int decimal = max-(max/60)*60;
+                String d = String.valueOf(max-(max/60)*60);
+                if (decimal<10){
+                    d=0+String.valueOf(decimal);
+                }
+                String c = String.valueOf(max/60) + ":" + d;
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        missed.setText(c);
+                    }
+                });
+            }
+        }, 1000, 1000);
+
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                start_music();
+                mp.start();
+            }
+        });
+        System.out.println("DKBGZKJDHZLKJDHZJKDLHZKJDHKZJHDKJZDHKJZHD");
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        blurBackground();
+
+        play_pause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mediaPlayer.isPlaying()){
+                    seekbar.setProgress(mediaPlayer.getCurrentPosition()/1000);
+                    mediaPlayer.pause();
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.play);
+                    play_pause.setImageDrawable(myDrawable);
+                }
+                else{
+                    mediaPlayer.start();
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.pause);
+                    play_pause.setImageDrawable(myDrawable);
+                }
             }
         });
 
-
-        /*this.search_song_btn = findViewById(R.id.search_song);
-        search_song_btn.setOnClickListener(new View.OnClickListener() {
+        nextSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (loop==0) {
+                    if (!(index_playlist==recommendation.size()-1)) {
+                        mediaPlayer.reset();
+                        index_playlist++;
+
+                        song=recommendation.get(index_playlist);
+                        image_url=song.getImage();
+
+                        Thread t = new Thread() {
+                            public void run() {
+                                InputStream is = null;
+                                try {
+                                    is = (InputStream) new URL(image_url).getContent();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                Drawable d = Drawable.createFromStream(is, "blurry image");
+                                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                                linearLayout.setBackgroundDrawable(d);
+                            }
+                        };
+                        t.start();
+
+                        web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
+                        try {
+                            mediaPlayer.setDataSource(web_song_url);
+                            mediaPlayer.prepareAsync();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else{
+                        mediaPlayer.seekTo(0);
+                        mediaPlayer.start();
+                    }
+                }
+                else{
+                    mediaPlayer.seekTo(0);
+                    mediaPlayer.start();
+                }
+            }
+        });
+
+        previousSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (index_playlist!=0) {
+                    mediaPlayer.reset();
+                    index_playlist--;
+
+                    song=recommendation.get(index_playlist);
+                    image_url=song.getImage();
+
+                    Thread t = new Thread() {
+                        public void run() {
+                            InputStream is = null;
+                            try {
+                                is = (InputStream) new URL(image_url).getContent();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            Drawable d = Drawable.createFromStream(is, "blurry image");
+                            LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                            linearLayout.setBackgroundDrawable(d);
+                        }
+                    };
+                    t.start();
+
+                    web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
+                    try {
+                        mediaPlayer.setDataSource(web_song_url);
+                        mediaPlayer.prepareAsync();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    System.out.println(index_playlist);
+                    mediaPlayer.seekTo(0);
+                    mediaPlayer.start();
+                }
+
+            }
+        });
+
+        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
+                if(fromUser) {
+                    mediaPlayer.seekTo(seekbar.getProgress() * 1000);
+                }
+                int time = seekBar.getProgress();
+                int decimal = time-(time/60)*60;
+                String d = String.valueOf(time-(time/60)*60);
+                if (decimal<10){
+                    d=0+String.valueOf(decimal);
+                }
+                String c = String.valueOf(time/60) + ":" + d;
+                current.setText(c);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+
+        repeat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (loop==0){
+                    loop=1;
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.repeat_loop);
+                    repeat.setImageDrawable(myDrawable);
+                }
+                else{
+                    loop=0;
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.repeat);
+                    repeat.setImageDrawable(myDrawable);
+                }
+            }
+        });
+
+        mediaPlayer.setOnCompletionListener(this);
+
+
+        if (index_playlist==recommendation.size()-1){
+            t = new Thread() {
+                public void run() {
+                    continueRecommendation(recommendation.get(index_playlist).getId());
+                }
+            };
+            t.start();
+        }
+
+    }
+
+    private void blurBackground() {
+        float radius = 5f;
+
+        View decorView = getWindow().getDecorView();
+        //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
+        ViewGroup rootView = (ViewGroup) decorView.findViewById(android.R.id.content);
+        Drawable windowBackground = decorView.getBackground();
+
+        blurView.setupWith(rootView)
+                .setFrameClearDrawable(windowBackground)
+                .setBlurAlgorithm(new RenderScriptBlur(this))
+                .setBlurRadius(radius)
+                .setBlurAutoUpdate(true);
+
+        //blurView.setAlpha(0.2f);
+
+    }
+
+    public void continueRecommendation(String song){
+        String search = "{\"video\": \"" + song + "\"}";
+        String url = MusicSelection.url_base + "recommendation";
+        System.out.println(search);
+        System.out.println(url);
+
+        json_return = null;
+
+        Thread t = new Thread() {
+            public void run() {
+                json_return = MainActivity.sendRequest(url, search);
+            }
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            JSONArray ja = new JSONArray(json_return);
+
+            for (int i=0; i<15; i++){
+                //MUSIC
+                JSONObject j = ja.getJSONObject(i);
+                String title = j.getString("title");
+                String url_image = j.getString("thumbnail");
+                String a = j.getString("artists");
+                String id = j.getString("link");
+                Music m = new Music(title, a, url_image);
+                m.setId(id);
+                if (!recommendation.contains(m))
+                    recommendation.add(m);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void setIndex_playlist(int i){
+        this.index_playlist=i;
+    }
+
+    public void start_music(){
+        //Starting song
+        name = song.getName();
+        author = song.getAuthor();
+        image_url = song.getImage();
+
+        nameView.setText(name);
+        authorView.setText(author);
+
+        Glide.with(this).load(image_url).into(imageView);
+        System.out.println(web_song_url);
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        if (loop==0){
+            if (!(index_playlist==recommendation.size()-1)) {
+                mediaPlayer.reset();
+                index_playlist++;
+
+                song=recommendation.get(index_playlist);
+                image_url=song.getImage();
+
                 Thread t = new Thread() {
                     public void run() {
-                        json_return = MainActivity.sendRequest("http://yoshibox.duckdns.org:8000/search", "{\"query\":\"playground\"}");
+                        InputStream is = null;
+                        try {
+                            is = (InputStream) new URL(image_url).getContent();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        Drawable d = Drawable.createFromStream(is, "blurry image");
+                        LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                        linearLayout.setBackgroundDrawable(d);
+                    }
+                };
+                t.start();
+
+                web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
+                try {
+                    mediaPlayer.setDataSource(web_song_url);
+                    mediaPlayer.prepareAsync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else{
+                Thread t = new Thread() {
+                    public void run() {
+                        continueRecommendation(recommendation.get(index_playlist).getId());
                     }
                 };
                 t.start();
             }
-        });*/
-
-        /*next=findViewById(R.id.autre_activite);
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent otherActivity = new Intent(getApplicationContext(), MusicSelection.class);
-                if (json_return!=null)
-                    otherActivity.putExtra("key", json_return);
-                startActivity(otherActivity);
-                finish();
-            }
-        });*/
-        /*im = findViewById(R.id.icon_song);
-        Glide.with(this).load("http://i.imgur.com/DvpvklR.png").into(im);*/
+        }
+        else{
+            System.out.println("HERE1");
+            mediaPlayer.seekTo(0);
+            mediaPlayer.start();
+        }
     }
 
-    public static void setWindowFlag(Activity activity, final int bits, boolean on) {
-        Window win = activity.getWindow();
-        WindowManager.LayoutParams winParams = win.getAttributes();
-        if (on) {
-            winParams.flags |= bits;
-        } else {
-            winParams.flags &= ~bits;
-        }
-        win.setAttributes(winParams);
+    public void onBackPressed() {
+        mediaPlayer.stop();
+        Intent otherActivity;
+        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+        startActivity(otherActivity);
+        finish();
     }
 }

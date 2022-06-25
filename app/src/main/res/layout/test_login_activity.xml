@@ -71,7 +71,8 @@
             android:layout_height="match_parent"
             android:textSize="20dp"
             android:gravity="left|bottom"
-            android:hint="Password"/>
+            android:hint="Password"
+            android:password="true"/>
 
         <TextView
             android:id="@+id/create_account"

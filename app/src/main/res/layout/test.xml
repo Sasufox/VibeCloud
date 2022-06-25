@@ -47,7 +47,7 @@
                     android:layout_height="35dp"
                     android:layout_marginRight="15dp"
                     android:layout_gravity="right"
-                    android:src="@drawable/heart"
+                    android:src="@drawable/logout"
                     android:id="@+id/heart"/>
 
             </LinearLayout>
@@ -135,6 +135,7 @@
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/popular_songs_list"
+                    android:scrollbars="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:verticalSpacing="10dp"

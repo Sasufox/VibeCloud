@@ -1,6 +1,7 @@
 package com.example.vibecloud;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -53,6 +54,46 @@ public class MainActivity extends AppCompatActivity {
         password_insert = findViewById(R.id.password_entry);
         createAccount = findViewById(R.id.create_account);
 
+        SharedPreferences sp1=this.getSharedPreferences("Login", MODE_PRIVATE);
+
+        String username = sp1.getString("username", null);
+        String password = sp1.getString("password", null);
+
+        System.out.println(username + " " + password);
+
+        if (username!=null && password!=null){
+            String inscription = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
+            String url = MusicSelection.url_base + "connect";
+            System.out.println(inscription);
+            System.out.println(url);
+
+            token = null;
+
+            Thread t = new Thread() {
+                public void run() {
+                    token = MainActivity.sendRequest(url, inscription);
+                }
+            };
+            t.start();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (token!=null) {
+                SharedPreferences sp=getSharedPreferences("Login", MODE_PRIVATE);
+                SharedPreferences.Editor Ed=sp.edit();
+                Ed.putString("username", username);
+                Ed.putString("password", password);
+                Ed.commit();
+
+                Intent activityHome = new Intent(getApplicationContext(), ActivityHome.class);
+                startActivity(activityHome);
+                finish();
+            }
+        }
+
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -78,6 +119,12 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if (token!=null) {
+                            SharedPreferences sp=getSharedPreferences("Login", MODE_PRIVATE);
+                            SharedPreferences.Editor Ed=sp.edit();
+                            Ed.putString("username", String.valueOf(username_insert.getText()));
+                            Ed.putString("password", String.valueOf(password_insert.getText()));
+                            Ed.commit();
+
                             Intent activityHome = new Intent(getApplicationContext(), ActivityHome.class);
                             startActivity(activityHome);
                             finish();
@@ -106,48 +153,6 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
-
-
-        /*this.search_song_btn = (Button) findViewById(R.id.search_song);
-        search_song_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Thread t = new Thread() {
-                    public void run() {
-                        json_return = sendRequest("http://yoshibox.duckdns.org:8000/search", "{\"query\":\"playground\"}");
-                    }
-                };
-                t.start();
-            }
-        });*/
-
-        /*String url = "http://yoshibox.duckdns.org:8000/static/youtube/Ba463jCxmow";
-        this.mediaPlayer = new MediaPlayer();
-        try {
-            mediaPlayer.setDataSource(url);
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            System.out.println("WTF");
-            e.printStackTrace();
-        }*/
-
-        /*next=findViewById(R.id.autre_activite);
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent otherActivity = new Intent(getApplicationContext(), MusicSelection.class);
-                if (json_return!=null)
-                    otherActivity.putExtra("key", json_return);
-                startActivity(otherActivity);
-                finish();
-            }
-        });*/
-        /*im = findViewById(R.id.icon_song);
-        Glide.with(this).load("http://i.imgur.com/DvpvklR.png").into(im);*/
-    }
-
-    public void playSong(View view) {
-        mediaPlayer.start();
     }
 
     public static String sendRequest(String url, String song_title){

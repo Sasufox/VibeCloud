@@ -75,11 +75,6 @@ public class search_test extends AppCompatActivity {
                 //listMusic=new ArrayList<Music>();
                 listMusic.clear();
 
-                /*for (Iterator<Music> iterator = listMusic.iterator(); iterator.hasNext(); ) {
-                    Music m = iterator.next();
-                    iterator.remove();
-                }*/
-
                 String search = "{\"query\": \"" + s + "\"}";
                 String url = MusicSelection.url_base + "search";
                 System.out.println(search);
@@ -90,6 +85,7 @@ public class search_test extends AppCompatActivity {
                 Thread t = new Thread() {
                     public void run() {
                         json_return = MainActivity.sendRequest(url, search);
+                        System.out.println("JSON RETURN = " + json_return);
                     }
                 };
                 t.start();
@@ -102,7 +98,7 @@ public class search_test extends AppCompatActivity {
                 try {
 
                     JSONArray ja = new JSONArray(json_return);
-                    for (int i=0; i<15; i++){
+                    for (int i=0; i<ja.length(); i++){
                         //MUSIC
                         JSONObject j = ja.getJSONObject(i);
                         String title = j.getString("title");

@@ -3,6 +3,7 @@ package com.example.vibecloud;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,11 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,42 +75,48 @@ public class GridAdapter extends ArrayAdapter<Music> {
 
                         //construct song info and pass it between activities
                         if (position!=-1) {
-                            String[] temp_song = new String[4];
+                            String[] temp_song = new String[5];
                             temp_song[0]=(listMusic.get(position).getName());
                             temp_song[1]=(listMusic.get(position).getAuthor());
                             temp_song[2]=(listMusic.get(position).getImage());
                             temp_song[3]=url;
+                            temp_song[4]="musicChosen";
 
-                            Intent MusicPlayer = new Intent(context, MusicListening.class);
+                            String r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                            ArrayList<Music> recommendation = new ArrayList<>();
+                            try {
+                                JSONArray ja = new JSONArray(r);
 
-                            MusicPlayer.putExtra("list", temp_song);
+                                for (int i=0; i<15; i++){
+                                    //MUSIC
+                                    JSONObject j = ja.getJSONObject(i);
+                                    String title = j.getString("title");
+                                    String url_image = j.getString("thumbnail");
+                                    String a = j.getString("artists");
+                                    String id = j.getString("link");
+                                    Music m = new Music(title, a, url_image);
+                                    m.setId(id);
+                                    recommendation.add(m);
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                            Intent MusicPlayer = new Intent(context, test.class);
+
+                            //MusicPlayer.putExtra("list", temp_song);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("recommendation", (Serializable)recommendation);
+                            MusicPlayer.putExtra("bundle_recommendation", bundle);
+                            MusicPlayer.putExtra("i", 0);
                             context.startActivity(MusicPlayer);
                             ((Activity)view.getContext()).finish();
                         }
                     }
                 };
                 t.start();
-                try {
-                    t.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                /*try {
-                    MediaPlayer mediaPlayer = new MediaPlayer();
-                    System.out.println(url);
-                    mediaPlayer.setDataSource(url);
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                } catch (IOException e) {
-                    System.out.println("WTF");
-                    e.printStackTrace();
-                }*/
             }
         });
-
-
-
 
 
         return listitemView;

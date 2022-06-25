@@ -85,6 +85,7 @@
                     android:src="@drawable/heart"/>
 
                 <ImageView
+                    android:id="@+id/previous"
                     android:layout_width="wrap_content"
                     android:layout_height="100px"
                     android:layout_weight="4"
@@ -98,12 +99,14 @@
                     android:src="@drawable/pause"/>
 
                 <ImageView
+                    android:id="@+id/next"
                     android:layout_width="wrap_content"
                     android:layout_height="100px"
                     android:layout_weight="4"
                     android:src="@drawable/next"/>
 
                 <ImageView
+                    android:id="@+id/repeat"
                     android:layout_width="wrap_content"
                     android:layout_height="85px"
                     android:layout_weight="4"

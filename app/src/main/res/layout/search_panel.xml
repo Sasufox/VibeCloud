@@ -5,7 +5,8 @@
     android:elevation="10dp"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layout_marginTop="25dp">
 
     <SearchView
         android:id="@+id/simpleSearchView"
@@ -17,7 +18,6 @@
         android:imeOptions="actionDone"
         android:singleLine="true"
         android:inputType="text"
-        android:layout_marginTop="15dp"
         />
 
     <ListView

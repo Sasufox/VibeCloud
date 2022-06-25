@@ -1,8 +1,11 @@
 package com.example.vibecloud;
 
+import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Music{
+import java.io.Serializable;
+
+public class Music implements Serializable{
 
     //fields
     private String name;
@@ -36,4 +39,15 @@ public class Music{
     public String getId(){
         return this.id;
     }
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof Music) {
+            return this.id.equals(((Music) o).id);
+        }
+        return false;
+    }
+
 }
