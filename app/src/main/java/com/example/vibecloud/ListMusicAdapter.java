@@ -132,7 +132,6 @@ public class ListMusicAdapter extends BaseAdapter{
                             }
 
                             Intent MusicPlayer = new Intent(context, test.class);
-
                             //MusicPlayer.putExtra("list", temp_song);
                             Bundle bundle = new Bundle();
                             bundle.putSerializable("recommendation", (Serializable)recommendation);

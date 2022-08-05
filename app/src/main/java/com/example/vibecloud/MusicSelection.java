@@ -22,7 +22,7 @@ import java.util.List;
 public class MusicSelection extends AppCompatActivity {
 
     //fields
-    public static String url_base = "http://yoshibox.duckdns.org:8000/";
+    public static String url_base = "http://7.tcp.eu.ngrok.io:17524/";
     List<Music> listMusic = new ArrayList<>();
 
     @Override

@@ -102,7 +102,7 @@ public class GridAdapter extends ArrayAdapter<Music> {
                                 e.printStackTrace();
                             }
 
-                            Intent MusicPlayer = new Intent(context, test.class);
+                            /*Intent MusicPlayer = new Intent(context, test.class);
 
                             //MusicPlayer.putExtra("list", temp_song);
                             Bundle bundle = new Bundle();
@@ -110,7 +110,7 @@ public class GridAdapter extends ArrayAdapter<Music> {
                             MusicPlayer.putExtra("bundle_recommendation", bundle);
                             MusicPlayer.putExtra("i", 0);
                             context.startActivity(MusicPlayer);
-                            ((Activity)view.getContext()).finish();
+                            ((Activity)view.getContext()).finish();*/
                         }
                     }
                 };

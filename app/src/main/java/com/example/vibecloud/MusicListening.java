@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -134,25 +135,6 @@ public class MusicListening extends AppCompatActivity implements MediaPlayer.OnC
 
         blurBackground();
         start_music();
-
-        timer=new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                while (!mediaPlayer.isPlaying());
-                max = mediaPlayer.getDuration()/1000;
-                seekbar.setMax(max);
-                seekbar.setProgress(mediaPlayer.getCurrentPosition()/1000);
-
-                int decimal = max-(max/60)*60;
-                String d = String.valueOf(max-(max/60)*60);
-                if (decimal<10){
-                    d=0+String.valueOf(decimal);
-                }
-                String c = String.valueOf(max/60) + ":" + d;
-                missed.setText(c);
-            }
-        }, 1000, 1000);
 
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -383,6 +365,7 @@ public class MusicListening extends AppCompatActivity implements MediaPlayer.OnC
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
+                    SystemClock.sleep(200);
                     mp.start();
                 }
             });
@@ -391,6 +374,25 @@ public class MusicListening extends AppCompatActivity implements MediaPlayer.OnC
             System.out.println("WTF");
             e.printStackTrace();
         }
+
+        timer=new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                while (!mediaPlayer.isPlaying());
+                max = mediaPlayer.getDuration()/1000;
+                seekbar.setMax(max);
+                seekbar.setProgress(mediaPlayer.getCurrentPosition()/1000);
+
+                int decimal = max-(max/60)*60;
+                String d = String.valueOf(max-(max/60)*60);
+                if (decimal<10){
+                    d=0+String.valueOf(decimal);
+                }
+                String c = String.valueOf(max/60) + ":" + d;
+                missed.setText(c);
+            }
+        }, 1000, 1000);
     }
 
     @Override
@@ -398,6 +400,7 @@ public class MusicListening extends AppCompatActivity implements MediaPlayer.OnC
         if (loop==0){
             if (!(index_playlist==recommendation.size()-1)) {
                 mediaPlayer.reset();
+                mediaPlayer.release();
                 index_playlist++;
 
                 song=recommendation.get(index_playlist);

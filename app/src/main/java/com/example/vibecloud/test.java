@@ -2,6 +2,7 @@ package com.example.vibecloud;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -50,6 +52,7 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
     private ArrayList<Music> recommendation = new ArrayList();
 
     private int index_playlist, max;
+    PowerManager.WakeLock wl;
 
     TextView current, missed;
 
@@ -59,6 +62,7 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
     String image_url, name, author;
     Timer timer;
 
+    @SuppressLint("InvalidWakeLockTag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -320,14 +324,9 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
         mediaPlayer.setOnCompletionListener(this);
 
 
-        if (index_playlist==recommendation.size()-1){
-            t = new Thread() {
-                public void run() {
-                    continueRecommendation(recommendation.get(index_playlist).getId());
-                }
-            };
-            t.start();
-        }
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+        wl.acquire();
 
     }
 
@@ -462,5 +461,11 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
         otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
         startActivity(otherActivity);
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        wl.release();
     }
 }

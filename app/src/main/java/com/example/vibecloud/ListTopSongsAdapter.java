@@ -105,7 +105,7 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                                 try {
                                     JSONArray ja = new JSONArray(r);
 
-                                    for (int i=0; i<15; i++){
+                                    for (int i=0; i<ja.length(); i++){
                                         //MUSIC
                                         JSONObject j = ja.getJSONObject(i);
                                         String title = j.getString("title");
@@ -120,8 +120,7 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                                     e.printStackTrace();
                                 }
 
-                                Intent MusicPlayer = new Intent(context, test.class);
-
+                                Intent MusicPlayer = new Intent(context, test_service.class);
                                 //MusicPlayer.putExtra("list", temp_song);
                                 Bundle bundle = new Bundle();
                                 bundle.putSerializable("recommendation", (Serializable)recommendation);
