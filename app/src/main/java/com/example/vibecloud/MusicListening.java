@@ -48,6 +48,7 @@ public class MusicListening extends AppCompatActivity implements MediaPlayer.OnC
     public ArrayList<Music> listMusicNext = new ArrayList();
     private String web_song_url;
     Context context = this;
+    String texte = "Hello";
     private ArrayList<Music> recommendation = new ArrayList();
 
     private int index_playlist, max;
