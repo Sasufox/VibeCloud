@@ -55,13 +55,19 @@ public class MainActivity extends AppCompatActivity {
         createAccount = findViewById(R.id.create_account);
 
         SharedPreferences sp1=this.getSharedPreferences("Login", MODE_PRIVATE);
+        SharedPreferences sp_adr=this.getSharedPreferences("IP", MODE_PRIVATE);
 
         String username = sp1.getString("username", null);
         String password = sp1.getString("password", null);
+        String address = sp_adr.getString("address", null);
+        System.out.println("xdddd " + address);
 
         System.out.println(username + " " + password);
 
         if (username!=null && password!=null){
+            if (address!=null && address!=""){
+                MusicSelection.url_base=address;
+            }
             String inscription = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
             String url = MusicSelection.url_base + "connect";
             System.out.println(inscription);
@@ -83,10 +89,13 @@ public class MainActivity extends AppCompatActivity {
 
             if (token!=null) {
                 SharedPreferences sp=getSharedPreferences("Login", MODE_PRIVATE);
+                SharedPreferences.Editor Ed_adr = sp_adr.edit();
                 SharedPreferences.Editor Ed=sp.edit();
                 Ed.putString("username", username);
                 Ed.putString("password", password);
+                Ed_adr.putString("address", address);
                 Ed.commit();
+                Ed_adr.commit();
 
                 Intent activityHome = new Intent(getApplicationContext(), ActivityHome.class);
                 startActivity(activityHome);
@@ -97,8 +106,18 @@ public class MainActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                System.out.println(username_insert.getText().toString().contains("tcp.eu.ngrok.io"));
+                if (username_insert.getText().toString().contains("tcp.eu.ngrok.io")){
+                    SharedPreferences sp_adr=getSharedPreferences("IP", MODE_PRIVATE);
+                    SharedPreferences.Editor Ed_adr=sp_adr.edit();
+                    Ed_adr.putString("address", String.valueOf(username_insert.getText()));
+                    System.out.println("HERE COMES THE ADDRESS " + String.valueOf(username_insert.getText()));
+                    Ed_adr.commit();
+                }
                 if (!username_insert.getText().toString().equals("")){
                     if (!password_insert.getText().toString().equals("")){
+                        if (address!=null)
+                            MusicSelection.url_base=address;
                         String inscription = "{\"username\": \"" + username_insert.getText().toString() + "\", \"password\": \"" + password_insert.getText().toString() + "\"}";
                         String url = MusicSelection.url_base + "connect";
                         System.out.println(inscription);

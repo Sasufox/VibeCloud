@@ -87,13 +87,8 @@ public class ListMusicAdapter extends BaseAdapter{
 
             @Override
             public void onClick(View view) {
-                String id = null;
-                for (int i=0; i<listMusic.size(); i++){
-                    if (songNameView.getText().equals(listMusic.get(i).getName()) && songAuthorView.getText().equals(listMusic.get(i).getAuthor())){
-                        id=listMusic.get(i).getId();
-                        position=i;
-                    }
-                }
+                String id = listMusic.get(i).getId();
+                position=i;
                 System.out.println("{\"video\": \"" + id + "\"}");
 
                 String finalId = id;
@@ -132,6 +127,7 @@ public class ListMusicAdapter extends BaseAdapter{
                             }
 
                             Intent MusicPlayer = new Intent(context, test.class);
+                            MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             //MusicPlayer.putExtra("list", temp_song);
                             Bundle bundle = new Bundle();
                             bundle.putSerializable("recommendation", (Serializable)recommendation);

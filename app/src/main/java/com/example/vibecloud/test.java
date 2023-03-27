@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,6 +51,8 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
     private String web_song_url;
     Context context = this;
     private ArrayList<Music> recommendation = new ArrayList();
+    public volatile Drawable d;
+    public volatile boolean isInRecommendation;
 
     private int index_playlist, max;
     PowerManager.WakeLock wl;
@@ -109,6 +112,7 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
 
         //Starting song
         mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         Thread t = new Thread() {
             public void run() {
@@ -118,12 +122,14 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Drawable d = Drawable.createFromStream(is, "blurry image");
+                d = Drawable.createFromStream(is, "blurry image");
+                d.setAlpha(180);
                 LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
                 linearLayout.setBackgroundDrawable(d);
             }
         };
         web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
+        start_music();
 
         try {
             mediaPlayer.setDataSource(web_song_url);
@@ -160,11 +166,10 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                start_music();
                 mp.start();
             }
         });
-        System.out.println("DKBGZKJDHZLKJDHZJKDLHZKJDHKZJHDKJZDHKJZHD");
+        System.out.println("TEST ICI HEHOOO");
         t.start();
         try {
             t.join();
@@ -195,8 +200,18 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
             @Override
             public void onClick(View view) {
                 if (loop==0) {
-                    if (!(index_playlist==recommendation.size()-1)) {
+                    if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
+                        mediaPlayer.stop();
                         mediaPlayer.reset();
+                        if ((index_playlist==recommendation.size()-2)) {
+                            Thread t2 = new Thread() {
+                                public void run() {
+                                    System.out.println(index_playlist + " " + recommendation.toString());
+                                    continueRecommendation(recommendation.get(index_playlist).getId());
+                                }
+                            };
+                            t2.start();
+                        }
                         index_playlist++;
 
                         song=recommendation.get(index_playlist);
@@ -210,12 +225,12 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
-                                Drawable d = Drawable.createFromStream(is, "blurry image");
-                                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                                linearLayout.setBackgroundDrawable(d);
+                                d = Drawable.createFromStream(is, "blurry image");
+                                d.setAlpha(180);
                             }
                         };
                         t.start();
+                        start_music();
 
                         web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
                         try {
@@ -224,8 +239,22 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        try {
+                            t.join();
+                            LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                            linearLayout.setBackgroundDrawable(d);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                     else{
+                        Thread t = new Thread() {
+                            public void run() {
+                                continueRecommendation(recommendation.get(index_playlist).getId());
+                            }
+                        };
+                        t.start();
+
                         mediaPlayer.seekTo(0);
                         mediaPlayer.start();
                     }
@@ -241,6 +270,7 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
             @Override
             public void onClick(View view) {
                 if (index_playlist!=0) {
+                    mediaPlayer.stop();
                     mediaPlayer.reset();
                     index_playlist--;
 
@@ -255,18 +285,26 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            Drawable d = Drawable.createFromStream(is, "blurry image");
+                            d = Drawable.createFromStream(is, "blurry image");
+                            d.setAlpha(180);
                             LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
                             linearLayout.setBackgroundDrawable(d);
                         }
                     };
                     t.start();
-
+                    start_music();
                     web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
                     try {
                         mediaPlayer.setDataSource(web_song_url);
                         mediaPlayer.prepareAsync();
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        t.join();
+                        LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                        linearLayout.setBackgroundDrawable(d);
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -275,7 +313,6 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                     mediaPlayer.seekTo(0);
                     mediaPlayer.start();
                 }
-
             }
         });
 
@@ -344,49 +381,50 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                 .setBlurRadius(radius)
                 .setBlurAutoUpdate(true);
 
-        //blurView.setAlpha(0.2f);
-
     }
 
     public void continueRecommendation(String song){
-        String search = "{\"video\": \"" + song + "\"}";
-        String url = MusicSelection.url_base + "recommendation";
-        System.out.println(search);
-        System.out.println(url);
+        if (!isInRecommendation) {
+            isInRecommendation=true;
+            String search = "{\"video\": \"" + song + "\"}";
+            String url = MusicSelection.url_base + "recommendation";
+            System.out.println(search);
+            System.out.println(url);
 
-        json_return = null;
+            json_return = null;
 
-        Thread t = new Thread() {
-            public void run() {
-                json_return = MainActivity.sendRequest(url, search);
+            Thread t = new Thread() {
+                public void run() {
+                    json_return = MainActivity.sendRequest(url, search);
+                }
+            };
+            t.start();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        };
-        t.start();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
-        try {
-            JSONArray ja = new JSONArray(json_return);
+            try {
+                JSONArray ja = new JSONArray(json_return);
 
-            for (int i=0; i<15; i++){
-                //MUSIC
-                JSONObject j = ja.getJSONObject(i);
-                String title = j.getString("title");
-                String url_image = j.getString("thumbnail");
-                String a = j.getString("artists");
-                String id = j.getString("link");
-                Music m = new Music(title, a, url_image);
-                m.setId(id);
-                if (!recommendation.contains(m))
-                    recommendation.add(m);
+                for (int i = 0; i < 15; i++) {
+                    //MUSIC
+                    JSONObject j = ja.getJSONObject(i);
+                    String title = j.getString("title");
+                    String url_image = j.getString("thumbnail");
+                    String a = j.getString("artists");
+                    String id = j.getString("link");
+                    Music m = new Music(title, a, url_image);
+                    m.setId(id);
+                    if (!recommendation.contains(m))
+                        recommendation.add(m);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+            isInRecommendation=false;
         }
-
     }
 
     public void setIndex_playlist(int i){
@@ -409,8 +447,19 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         if (loop==0){
-            if (!(index_playlist==recommendation.size()-1)) {
+            if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
+                mediaPlayer.stop();
                 mediaPlayer.reset();
+
+                if ((index_playlist==recommendation.size()-2)) {
+                    Thread t2 = new Thread() {
+                        public void run() {
+                            System.out.println(index_playlist + " " + recommendation.toString());
+                            continueRecommendation(recommendation.get(index_playlist).getId());
+                        }
+                    };
+                    t2.start();
+                }
                 index_playlist++;
 
                 song=recommendation.get(index_playlist);
@@ -424,18 +473,25 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        Drawable d = Drawable.createFromStream(is, "blurry image");
-                        LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                        linearLayout.setBackgroundDrawable(d);
+                        d = Drawable.createFromStream(is, "blurry image");
+                        d.setAlpha(180);
                     }
                 };
                 t.start();
+                start_music();
 
                 web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
                 try {
                     mediaPlayer.setDataSource(web_song_url);
                     mediaPlayer.prepareAsync();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    t.join();
+                    LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                    linearLayout.setBackgroundDrawable(d);
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -446,6 +502,9 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                     }
                 };
                 t.start();
+
+                mediaPlayer.seekTo(0);
+                mediaPlayer.start();
             }
         }
         else{
@@ -467,5 +526,10 @@ public class test extends AppCompatActivity implements MediaPlayer.OnCompletionL
     protected void onDestroy() {
         super.onDestroy();
         wl.release();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 }

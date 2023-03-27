@@ -3,6 +3,8 @@ package com.example.vibecloud;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 
 public class Music implements Serializable{
@@ -50,4 +52,9 @@ public class Music implements Serializable{
         return false;
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

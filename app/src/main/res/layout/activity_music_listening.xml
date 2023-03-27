@@ -58,7 +58,8 @@
                     android:gravity="center_horizontal"
                     android:layout_marginBottom="10dp"
                     android:textSize="20sp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
 
             </LinearLayout>
 
@@ -73,6 +74,8 @@
                     android:layout_height="32dp"
                     android:layout_marginTop="10dp"
                     android:id="@+id/seek_bar"
+                    android:outlineAmbientShadowColor="@color/black"
+                    android:outlineSpotShadowColor="@color/black"
                     />
 
                 <LinearLayout
@@ -91,6 +94,7 @@
                         android:layout_weight="1"
                         android:layout_alignParentLeft="true"
                         android:layout_marginLeft="10dp"
+                        android:textColor="@color/black"
                         />
 
                     <TextView
@@ -104,6 +108,7 @@
                         android:layout_alignParentRight="true"
                         android:gravity="right"
                         android:layout_marginRight="10dp"
+                        android:textColor="@color/black"
                         />
                 </LinearLayout>
 

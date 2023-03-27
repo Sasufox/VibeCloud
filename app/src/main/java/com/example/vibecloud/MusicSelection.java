@@ -22,7 +22,7 @@ import java.util.List;
 public class MusicSelection extends AppCompatActivity {
 
     //fields
-    public static String url_base = "http://7.tcp.eu.ngrok.io:17524/";
+    public static String url_base = "http://2.tcp.eu.ngrok.io:18427/api/";
     List<Music> listMusic = new ArrayList<>();
 
     @Override
