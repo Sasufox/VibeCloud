@@ -314,7 +314,11 @@ public class MusicListening extends AppCompatActivity implements MediaPlayer.OnC
 
         Thread t = new Thread() {
             public void run() {
-                json_return = MainActivity.sendRequest(url, search);
+                try {
+                    json_return = MainActivity.sendRequest(url, search);
+                } catch (RequestException e) {
+                    e.printStackTrace();
+                }
             }
         };
         t.start();

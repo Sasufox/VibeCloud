@@ -94,7 +94,13 @@ public class ListMusicAdapter extends BaseAdapter{
                 String finalId = id;
                 Thread t = new Thread() {
                     public void run() {
-                        String u = MainActivity.sendRequest(MusicSelection.url_base+"get", "{\"video\": \"" + finalId + "\"}");
+                        String u = null;
+                        try {
+                            u = MainActivity.sendRequest(MusicSelection.url_base+"get", "{\"video\": \"" + finalId + "\"}");
+                        } catch (RequestException e) {
+                            e.printStackTrace();
+                            return;
+                        }
                         url = MusicSelection.url_base+u;
 
                         //construct song info and pass it between activities
@@ -106,7 +112,13 @@ public class ListMusicAdapter extends BaseAdapter{
                             temp_song[3]=url;
                             temp_song[4]="musicChosen";
 
-                            String r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                            String r = null;
+                            try {
+                                r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                            } catch (RequestException e) {
+                                e.printStackTrace();
+                                return;
+                            }
                             ArrayList<Music> recommendation = new ArrayList<>();
                             try {
                                 JSONArray ja = new JSONArray(r);
@@ -126,7 +138,7 @@ public class ListMusicAdapter extends BaseAdapter{
                                 e.printStackTrace();
                             }
 
-                            Intent MusicPlayer = new Intent(context, test.class);
+                            Intent MusicPlayer = new Intent(context, Test.class);
                             MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             //MusicPlayer.putExtra("list", temp_song);
                             Bundle bundle = new Bundle();

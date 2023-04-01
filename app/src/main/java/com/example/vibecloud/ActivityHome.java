@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -42,6 +43,9 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
     ArrayList<Music> listTopMusic = new ArrayList();
     ArrayList<Artist> listArtist = new ArrayList();
     BottomNavigationView navigationView;
+
+    // Handle server request exceptions
+    private volatile boolean requestException = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +137,7 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
         win.setAttributes(winParams);
     }
 
-    public void faire(){
+    public void faire() {
         String search = "{\"country\": \"" + "JP" + "\"}";
         String url = MusicSelection.url_base + "homepage";
         System.out.println(search);
@@ -141,9 +145,15 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
 
         json_return = null;
 
+
         Thread t = new Thread() {
             public void run() {
-                json_return = MainActivity.sendRequest(url, search);
+                try {
+                    json_return = MainActivity.sendRequest(url, search);
+                } catch (RequestException e) {
+                    e.printStackTrace();
+                    return;
+                }
                 System.out.println("JSON RETURN = " + json_return);
             }
         };
@@ -153,6 +163,9 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        if(json_return == null)
+            return;
 
         try {
             JSONObject ja = new JSONObject(json_return);

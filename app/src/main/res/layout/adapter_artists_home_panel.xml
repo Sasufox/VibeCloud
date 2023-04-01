@@ -13,7 +13,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/nightVeryDark_or_dayLight">
 
         <ImageView
             android:id="@+id/author_icon"
@@ -29,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/author_default_name"
-            android:textColor="@color/black"
+            android:textColor="@color/nightWhite_or_dayBlack"
             android:textSize="20sp"
             android:textStyle="bold"
             android:gravity="center"

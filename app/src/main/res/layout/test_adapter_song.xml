@@ -37,7 +37,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/song_default_name"
-                    android:textColor="@color/black"
+                    android:textColor="@color/nightWhite_or_dayBlack"
                     android:textSize="26sp"
                     android:textStyle="bold"/>
 

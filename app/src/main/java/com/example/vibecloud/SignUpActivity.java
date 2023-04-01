@@ -20,6 +20,9 @@ public class SignUpActivity extends AppCompatActivity {
     TextView signIn;
     public volatile String token;
 
+    // Server request exception handling
+    RequestException requestException = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +53,12 @@ public class SignUpActivity extends AppCompatActivity {
 
                         Thread t = new Thread() {
                             public void run() {
-                                token = MainActivity.sendRequest(url, inscription);
+                                try {
+                                    token = MainActivity.sendRequest(url, inscription);
+                                } catch (RequestException e) {
+                                    e.printStackTrace();
+                                    requestException = e;
+                                }
                             }
                         };
                         t.start();
@@ -58,6 +66,12 @@ public class SignUpActivity extends AppCompatActivity {
                             t.join();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
+                        }
+
+                        if(requestException != null) {
+                            requestException.showExceptionToast(getApplicationContext());
+                            requestException = null;
+                            return;
                         }
 
                         if (token!=null) {

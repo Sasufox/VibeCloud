@@ -13,7 +13,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/nightVeryDark_or_dayLight">
 
         <ImageView
             android:id="@+id/song_icon"

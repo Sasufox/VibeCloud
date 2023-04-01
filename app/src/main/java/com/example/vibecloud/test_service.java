@@ -399,7 +399,12 @@ public class test_service extends AppCompatActivity implements MediaPlayer.OnCom
 
             Thread t = new Thread() {
                 public void run() {
-                    json_return = MainActivity.sendRequest(url, search);
+                    try {
+                        json_return = MainActivity.sendRequest(url, search);
+                    } catch (RequestException e) {
+                        e.printStackTrace();
+                        return;
+                    }
                 }
             };
             t.start();

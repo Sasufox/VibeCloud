@@ -84,7 +84,11 @@ public class search_test extends AppCompatActivity {
 
                 Thread t = new Thread() {
                     public void run() {
-                        json_return = MainActivity.sendRequest(url, search);
+                        try {
+                            json_return = MainActivity.sendRequest(url, search);
+                        } catch (RequestException e) {
+                            e.printStackTrace();
+                        }
                         System.out.println("JSON RETURN = " + json_return);
                     }
                 };
@@ -94,6 +98,9 @@ public class search_test extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
+                if(json_return == null)
+                    return false;
 
                 try {
 

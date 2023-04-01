@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.View;
 import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
@@ -34,6 +35,9 @@ public class BackgroundService extends Service implements MediaPlayer.OnCompleti
     ArrayList<Music> recommendation;
     public volatile String json_return;
     private int loop=0;
+
+    // Server request exception handling
+    private volatile RequestException requestException = null;
 
     public class ServiceBinder extends Binder{
         public BackgroundService getService() {
@@ -104,7 +108,12 @@ public class BackgroundService extends Service implements MediaPlayer.OnCompleti
 
         Thread t = new Thread() {
             public void run() {
-                json_return = MainActivity.sendRequest(url, search);
+                try {
+                    json_return = MainActivity.sendRequest(url, search);
+                } catch (RequestException e) {
+                    e.printStackTrace();
+                    requestException = e;
+                }
             }
         };
         t.start();
@@ -112,6 +121,12 @@ public class BackgroundService extends Service implements MediaPlayer.OnCompleti
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        if(requestException != null) {
+            requestException.showExceptionToast(getApplicationContext());
+            requestException = null;
+            return;
         }
 
         try {

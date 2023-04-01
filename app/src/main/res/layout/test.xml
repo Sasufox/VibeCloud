@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="@color/nightDark_or_dayWhite"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -40,7 +41,7 @@
                     android:layout_weight="1"
                     android:layout_gravity="left"
                     android:textStyle="bold"
-                    android:textColor="@color/black"/>
+                    android:textColor="@color/nightWhite_or_dayBlack"/>
 
                 <ImageView
                     android:layout_width="35dp"
@@ -86,7 +87,7 @@
                     android:layout_weight="1"
                     android:layout_gravity="left"
                     android:textStyle="bold"
-                    android:textColor="@color/black"/>
+                    android:textColor="@color/nightWhite_or_dayBlack"/>
 
             </LinearLayout>
 
@@ -124,7 +125,7 @@
                     android:layout_weight="1"
                     android:layout_gravity="left"
                     android:textStyle="bold"
-                    android:textColor="@color/black"/>
+                    android:textColor="@color/nightWhite_or_dayBlack"/>
 
             </LinearLayout>
 
@@ -159,7 +160,7 @@
             android:id="@+id/activity_main_bottom_navigation"
             android:layout_alignParentBottom="true"
             app:menu="@menu/bottom_navigation"
-            android:background="@color/white"
+            android:background="@color/nightVeryDark_or_dayLight"
             >
 
         </com.google.android.material.bottomnavigation.BottomNavigationView>

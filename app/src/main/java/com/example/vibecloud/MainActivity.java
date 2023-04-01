@@ -1,5 +1,8 @@
 package com.example.vibecloud;
 
+import android.app.ActivityManager;
+import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
@@ -36,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
     EditText username_insert, password_insert;
     TextView createAccount;
     public volatile String token;
+
+    // Handle server request exception inside a thread
+    private volatile RequestException requestException = null;
 
 
     @Override
@@ -75,9 +81,16 @@ public class MainActivity extends AppCompatActivity {
 
             token = null;
 
+            RequestException exception = null;
+
             Thread t = new Thread() {
                 public void run() {
-                    token = MainActivity.sendRequest(url, inscription);
+                    try {
+                        token = MainActivity.sendRequest(url, inscription);
+                    } catch (RequestException e) {
+                        e.printStackTrace();
+                        requestException = e;
+                    }
                 }
             };
             t.start();
@@ -85,6 +98,11 @@ public class MainActivity extends AppCompatActivity {
                 t.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+
+            if(requestException != null) {
+                requestException.showExceptionToast(getApplicationContext());
+                requestException = null;
             }
 
             if (token!=null) {
@@ -108,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 System.out.println(username_insert.getText().toString().contains("tcp.eu.ngrok.io"));
                 if (username_insert.getText().toString().contains("tcp.eu.ngrok.io")){
+                    System.out.println("IP ENREGISTREE");
                     SharedPreferences sp_adr=getSharedPreferences("IP", MODE_PRIVATE);
                     SharedPreferences.Editor Ed_adr=sp_adr.edit();
                     Ed_adr.putString("address", String.valueOf(username_insert.getText()));
@@ -127,7 +146,12 @@ public class MainActivity extends AppCompatActivity {
 
                         Thread t = new Thread() {
                             public void run() {
-                                token = MainActivity.sendRequest(url, inscription);
+                                try {
+                                    token = MainActivity.sendRequest(url, inscription);
+                                } catch (RequestException e) {
+                                    e.printStackTrace();
+                                    requestException = e;
+                                }
                             }
                         };
                         t.start();
@@ -135,6 +159,12 @@ public class MainActivity extends AppCompatActivity {
                             t.join();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
+                        }
+
+                        if(requestException != null) {
+                            requestException.showExceptionToast(getApplicationContext());
+                            requestException = null;
+                            return;
                         }
 
                         if (token!=null) {
@@ -174,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public static String sendRequest(String url, String song_title){
+    public static String sendRequest(String url, String song_title) throws RequestException {
         final MediaType JSON = MediaType.parse("application/json");
 
         OkHttpClient client = new OkHttpClient();
@@ -184,9 +214,12 @@ public class MainActivity extends AppCompatActivity {
 
         try (Response response = client.newCall(request).execute()) {
             if (response.code()>=200 && response.code()<=299)
-                return response.body().string();
+                if (response.body() != null) {
+                    return response.body().string();
+                }
         } catch (IOException e) {
             e.printStackTrace();
+            throw new RequestException("Can't send the request to the server");
         }
         return null;
     }

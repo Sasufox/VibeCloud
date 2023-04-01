@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:id="@+id/toolbar"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="0dp"
+    android:background="@color/nightVeryDark_or_dayLight"
     android:elevation="10dp"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_marginTop="25dp">
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="25dp"/>
 
     <SearchView
         android:id="@+id/simpleSearchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="Faites votre recherche"
         android:layout_margin="15dp"
         android:clickable="true"
         android:imeOptions="actionDone"
-        android:singleLine="true"
         android:inputType="text"
-        />
+        android:queryHint="Faites votre recherche"
+        android:singleLine="true" />
 
     <ListView
         android:id="@+id/songs_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:listitem="@layout/adapter_song_test2"
+        android:layout_alignBottom="@+id/simpleSearchView"
         android:verticalSpacing="10dp"
-        android:layout_alignBottom="@+id/simpleSearchView"/>
+        tools:listitem="@layout/adapter_song_test2" />
 </LinearLayout>

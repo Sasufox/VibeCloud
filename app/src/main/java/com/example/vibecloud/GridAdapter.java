@@ -3,6 +3,8 @@ package com.example.vibecloud;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 
@@ -52,6 +55,7 @@ public class GridAdapter extends ArrayAdapter<Music> {
         ImageView musicIcon = listitemView.findViewById(R.id.song_icon);
         musicName.setText(currentMusic.getName());
         Glide.with(getContext()).load(currentMusic.getImage()).into(musicIcon);
+        listitemView.setBackgroundResource(R.drawable.rounded_corners);
 
         //listener on musics
         listitemView.setOnClickListener(new View.OnClickListener() {
@@ -68,9 +72,16 @@ public class GridAdapter extends ArrayAdapter<Music> {
                 System.out.println("{\"video\": \"" + id + "\"}");
 
                 String finalId = id;
+
                 Thread t = new Thread() {
                     public void run() {
-                        String u = MainActivity.sendRequest(MusicSelection.url_base+"get", "{\"video\": \"" + finalId + "\"}");
+                        String u = null;
+                        try {
+                            u = MainActivity.sendRequest(MusicSelection.url_base+"get", "{\"video\": \"" + finalId + "\"}");
+                        } catch (RequestException e) {
+                            e.printStackTrace();
+                            return;
+                        }
                         url = MusicSelection.url_base+u;
 
                         //construct song info and pass it between activities
@@ -82,12 +93,18 @@ public class GridAdapter extends ArrayAdapter<Music> {
                             temp_song[3]=url;
                             temp_song[4]="musicChosen";
 
-                            String r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                            String r = null;
+                            try {
+                                r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                            } catch (RequestException e) {
+                                e.printStackTrace();
+                                return;
+                            }
                             ArrayList<Music> recommendation = new ArrayList<>();
                             try {
                                 JSONArray ja = new JSONArray(r);
 
-                                for (int i=0; i<15; i++){
+                                for (int i=0; i<ja.length(); i++){
                                     //MUSIC
                                     JSONObject j = ja.getJSONObject(i);
                                     String title = j.getString("title");

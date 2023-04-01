@@ -88,7 +88,13 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                     String finalId = id;
                     Thread t = new Thread() {
                         public void run() {
-                            String u = MainActivity.sendRequest(MusicSelection.url_base+"get", "{\"video\": \"" + finalId + "\"}");
+                            String u = null;
+                            try {
+                                u = MainActivity.sendRequest(MusicSelection.url_base+"get", "{\"video\": \"" + finalId + "\"}");
+                            } catch (RequestException e) {
+                                e.printStackTrace();
+                                return;
+                            }
                             url = MusicSelection.url_base+u;
 
                             //construct song info and pass it between activities
@@ -100,7 +106,13 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                                 temp_song[3]=url;
                                 temp_song[4]="musicChosen";
 
-                                String r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                                String r = null;
+                                try {
+                                    r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
+                                } catch (RequestException e) {
+                                    e.printStackTrace();
+                                    return;
+                                }
                                 ArrayList<Music> recommendation = new ArrayList<>();
                                 try {
                                     JSONArray ja = new JSONArray(r);
@@ -161,7 +173,13 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                     String finalId = id;
                     Thread t = new Thread() {
                         public void run() {
-                            String u = MainActivity.sendRequest(MusicSelection.url_base + "get", "{\"video\": \"" + finalId + "\"}");
+                            String u = null;
+                            try {
+                                u = MainActivity.sendRequest(MusicSelection.url_base + "get", "{\"video\": \"" + finalId + "\"}");
+                            } catch (RequestException e) {
+                                e.printStackTrace();
+                                return;
+                            }
                             url = MusicSelection.url_base + u;
 
                             //construct song info and pass it between activities
