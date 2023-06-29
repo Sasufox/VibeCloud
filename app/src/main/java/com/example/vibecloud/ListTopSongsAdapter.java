@@ -132,7 +132,7 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                                     e.printStackTrace();
                                 }
 
-                                Intent MusicPlayer = new Intent(context, test_service.class);
+                                Intent MusicPlayer = new Intent(context, MusicListening.class);
                                 //MusicPlayer.putExtra("list", temp_song);
                                 Bundle bundle = new Bundle();
                                 bundle.putSerializable("recommendation", (Serializable)recommendation);

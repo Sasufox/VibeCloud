@@ -43,6 +43,8 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
     ArrayList<Music> listTopMusic = new ArrayList();
     ArrayList<Artist> listArtist = new ArrayList();
     BottomNavigationView navigationView;
+    static Intent service;
+    static boolean serviceOn=false;
 
     // Handle server request exceptions
     private volatile boolean requestException = false;

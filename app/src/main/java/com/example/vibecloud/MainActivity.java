@@ -124,8 +124,8 @@ public class MainActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                System.out.println(username_insert.getText().toString().contains("tcp.eu.ngrok.io"));
-                if (username_insert.getText().toString().contains("tcp.eu.ngrok.io")){
+                System.out.println(username_insert.getText().toString().contains("http"));
+                if (username_insert.getText().toString().contains("http")){
                     System.out.println("IP ENREGISTREE");
                     SharedPreferences sp_adr=getSharedPreferences("IP", MODE_PRIVATE);
                     SharedPreferences.Editor Ed_adr=sp_adr.edit();

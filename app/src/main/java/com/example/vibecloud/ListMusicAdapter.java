@@ -138,7 +138,7 @@ public class ListMusicAdapter extends BaseAdapter{
                                 e.printStackTrace();
                             }
 
-                            Intent MusicPlayer = new Intent(context, Test.class);
+                            Intent MusicPlayer = new Intent(context, TestServiceShit.class);
                             MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             //MusicPlayer.putExtra("list", temp_song);
                             Bundle bundle = new Bundle();
