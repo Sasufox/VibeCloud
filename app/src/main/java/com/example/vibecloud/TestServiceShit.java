@@ -114,7 +114,11 @@ public class TestServiceShit extends AppCompatActivity{
         repeat = findViewById(R.id.repeat);
 
         service=new Intent(this, ServiceTest.class);
-        startService(service);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(service);
+        } else {
+            startService(service);
+        }
         bindService(service, connection, Context.BIND_AUTO_CREATE);
     }
 

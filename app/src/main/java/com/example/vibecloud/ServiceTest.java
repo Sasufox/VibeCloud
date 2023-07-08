@@ -98,7 +98,7 @@ public class ServiceTest extends Service {
                                 public void run() {
                                     System.out.println(index_playlist + " " + recommendation.toString());
                                     continueRecommendation(recommendation.get(index_playlist).getId());
-                                    isreco.setValue(true);
+                                    isreco.postValue(true);
                                 }
                             };
                             t2.start();
