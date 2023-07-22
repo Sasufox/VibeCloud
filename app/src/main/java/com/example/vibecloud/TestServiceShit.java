@@ -1,12 +1,15 @@
 package com.example.vibecloud;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -71,6 +74,9 @@ public class TestServiceShit extends AppCompatActivity{
     boolean mBound;
     Intent service;
 
+    boolean isOnResume;
+    boolean demarremtn=true;
+
 
     @SuppressLint("InvalidWakeLockTag")
     @Override
@@ -85,7 +91,6 @@ public class TestServiceShit extends AppCompatActivity{
 
         //extracting infos from previously Activity
         System.out.println("ActivityHome " + ActivityHome.serviceOn);
-        if (ActivityHome.serviceOn) stopService(ActivityHome.service);
         Intent intent = getIntent();
         Bundle args = intent.getBundleExtra("bundle_recommendation");
         recommendation = (ArrayList<Music>) args.getSerializable("recommendation");
@@ -114,39 +119,53 @@ public class TestServiceShit extends AppCompatActivity{
         repeat = findViewById(R.id.repeat);
 
         service=new Intent(this, ServiceTest.class);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(service);
-        } else {
-            startService(service);
+            if (ActivityHome.serviceOn) {
+                mService.mediaPlayer.stop();
+                mService.mediaPlayer.reset();
+                mService.mediaPlayer.release();
+            }
+            else{
+                startForegroundService(service);
+            }
         }
-        bindService(service, connection, Context.BIND_AUTO_CREATE);
-    }
 
-    private ServiceConnection connection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance.
-            ServiceTest.LocalBinder binder = (ServiceTest.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            mService.recommendation=recommendation;
+        if (demarremtn) isOnResume=false;
+        demarremtn=false;
+        System.out.println(isOnResume);
+        if (!isOnResume) {
+            mService.recommendation = recommendation;
             activity_action();
         }
+        else {
+            recommendation = mService.recommendation;
+            index_playlist = mService.index_playlist;
+            song = recommendation.get(index_playlist);
+            image_url = song.getImage();
 
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
+            Thread t = new Thread() {
+                public void run() {
+                    InputStream is = null;
+                    try {
+                        is = (InputStream) new URL(image_url).getContent();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    d = Drawable.createFromStream(is, "blurry image");
+                    d.setAlpha(180);
+                }
+            };
+            t.start();
+            start_music();
+            try {
+                t.join();
+                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                linearLayout.setBackgroundDrawable(d);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-    };
-
-    public void setAuthorView(String a) {
-        this.authorView.setText(a);
-    }
-
-    public void setNameView(String a) {
-        this.nameView.setText(a);
     }
 
     public void blurBackground() {
@@ -189,6 +208,12 @@ public class TestServiceShit extends AppCompatActivity{
         super.onPause();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isOnResume = true;
+    }
+
     public void activity_action(){
         mService.recommendation = recommendation;
         Thread t = new Thread() {
@@ -216,6 +241,7 @@ public class TestServiceShit extends AppCompatActivity{
         }
         utilise();
         mService.playlist();
+        while (!mService.mediaPrepared){}
         timer=new Timer();
         timer.schedule(new TimerTask() {
             @Override

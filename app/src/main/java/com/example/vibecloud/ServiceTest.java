@@ -1,13 +1,21 @@
 package com.example.vibecloud;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.MutableLiveData;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -22,6 +30,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -46,33 +55,38 @@ import eightbitlab.com.blurview.RenderScriptBlur;
 public class ServiceTest extends Service {
 
     //fields
-    int loop=0;
-    public volatile String json_return;
-    private String web_song_url;
-    public ArrayList<Music> recommendation = new ArrayList();
-    public volatile boolean isInRecommendation;
+    static int loop=0;
+    public static volatile String json_return;
+    private static String web_song_url;
+    static public ArrayList<Music> recommendation = new ArrayList();
+    static public volatile boolean isInRecommendation;
 
-    int index_playlist=0;
+    static int index_playlist=0;
 
     TestServiceShit mClient;
 
-    MediaPlayer mediaPlayer;
-    Music song;
+    static MediaPlayer mediaPlayer;
+    static Music song;
     String image_url, name, author;
-    MutableLiveData<Boolean> isreco;
-    private final IBinder binder = new ServiceTest.LocalBinder();
+    static MutableLiveData<Boolean> isreco;
+    static boolean mediaPrepared;
+    Notification notification;
 
-    public void playlist(){
+    public static void playlist(){
         //Starting song
+        mediaPrepared = false;
+        System.out.println("PREPARED???? " + mediaPrepared);
         isreco.setValue(false);
         mediaPlayer = new MediaPlayer();
         mediaPlayer.reset();
+        mediaPrepared=true;
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         web_song_url = MusicSelection.url_base + "static/youtube/" + recommendation.get(index_playlist).getId();
 
         try {
             mediaPlayer.setDataSource(web_song_url);
             mediaPlayer.prepareAsync();
+            mediaPrepared=true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -139,32 +153,61 @@ public class ServiceTest extends Service {
         });
     }
 
-    public class LocalBinder extends Binder {
-        ServiceTest getService() {
-            System.out.println("lol");
-            // Return this instance of LocalService so clients can call public methods.
-            return ServiceTest.this;
-        }
-    }
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 //        Bundle b = intent.getBundleExtra("bundle_song");
 //        String song = b.getString("song");
         System.out.println("lol2");
+        final String CHANNELID = "Foreground Service ID";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            startMyOwnForeground();
+        else {
+            System.out.println("NIGGAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            startForeground(1, new Notification());
+        }
+
         //System.out.println(song);
-        return Service.START_STICKY;
+        return START_NOT_STICKY;
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        System.out.println("lol2222222222222");
+    private void startMyOwnForeground(){
+        String NOTIFICATION_CHANNEL_ID = "com.example.vibecloud2";
+        String channelName = "My Background Service";
+        NotificationChannel chan = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            System.out.println("21");
+            chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            chan.setLightColor(Color.BLUE);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        }
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(chan);
+        }
 
-        return binder;
+        RemoteViews notificationLayout = new RemoteViews(getPackageName(), R.layout.notification_small);
+        RemoteViews notificationLayoutExpanded = new RemoteViews(getPackageName(), R.layout.notification_big);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("Niggers")
+                .setContentText("I hate niggers")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
+                .setCustomContentView(notificationLayout)
+                .setCustomBigContentView(notificationLayoutExpanded)
+                .build();
+        startForeground(2, notification);
     }
 
-
-    public void continueRecommendation(String song){
+    public static void continueRecommendation(String song){
         if (!isInRecommendation) {
             isInRecommendation=true;
             String search = "{\"video\": \"" + song + "\"}";
@@ -224,7 +267,14 @@ public class ServiceTest extends Service {
         mediaPlayer.stop();
         mediaPlayer.reset();
         mediaPlayer.release();
-        super.onDestroy();
+        stopForeground(true);
+        stopSelf();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
 
