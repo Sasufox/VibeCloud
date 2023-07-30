@@ -210,8 +210,33 @@ public class TestServiceShit extends AppCompatActivity{
 
     @Override
     protected void onResume() {
-        super.onResume();
+        recommendation = mService.recommendation;
+        index_playlist = mService.index_playlist;
+        song = recommendation.get(index_playlist);
+        image_url = song.getImage();
+        Thread t = new Thread() {
+            public void run() {
+                InputStream is = null;
+                try {
+                    is = (InputStream) new URL(image_url).getContent();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                d = Drawable.createFromStream(is, "blurry image");
+                d.setAlpha(180);
+            }
+        };
+        t.start();
+        start_music();
+        try {
+            t.join();
+            LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+            linearLayout.setBackgroundDrawable(d);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         isOnResume = true;
+        super.onResume();
     }
 
     public void activity_action(){
