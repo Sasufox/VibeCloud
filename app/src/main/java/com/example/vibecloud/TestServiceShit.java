@@ -61,6 +61,7 @@ public class TestServiceShit extends AppCompatActivity{
     public ArrayList<Music> recommendation = new ArrayList();
     public volatile Drawable d;
     public volatile boolean isInRecommendation;
+    public boolean song_unique=false;
 
     public int index_playlist, max;
 
@@ -99,6 +100,13 @@ public class TestServiceShit extends AppCompatActivity{
             System.out.println(recommendation.get(i).getName());
         }
 
+        if (recommendation.size()<=1){
+            song_unique=true;
+            mService.song_unique=true;
+        }
+
+        System.out.println("Song_unique = " + song_unique);
+
         current = findViewById(R.id.song_current);
         missed = findViewById(R.id.song_missed);
 
@@ -125,6 +133,7 @@ public class TestServiceShit extends AppCompatActivity{
                 mService.mediaPlayer.stop();
                 mService.mediaPlayer.reset();
                 mService.mediaPlayer.release();
+                mService.index_playlist=0;
             }
             else{
                 startForegroundService(service);
@@ -190,8 +199,13 @@ public class TestServiceShit extends AppCompatActivity{
 
     public void onBackPressed() {
         timer.cancel();
-        ActivityHome.service=service;
-        ActivityHome.serviceOn=true;
+        if (!mService.mediaPlayer.isPlaying()){
+            stopService(service);
+        }
+        else {
+            ActivityHome.service = service;
+            ActivityHome.serviceOn = true;
+        }
         Intent otherActivity;
         otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
         startActivity(otherActivity);
@@ -271,24 +285,24 @@ public class TestServiceShit extends AppCompatActivity{
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                while (!mService.mediaPlayer.isPlaying());
-                max = mService.mediaPlayer.getDuration()/1000;
-                seekbar.setMax(max);
-                seekbar.setProgress(mService.mediaPlayer.getCurrentPosition()/1000);
+                if (mService.mediaPlayer.isPlaying()) {
+                    max = mService.mediaPlayer.getDuration() / 1000;
+                    seekbar.setMax(max);
+                    seekbar.setProgress(mService.mediaPlayer.getCurrentPosition() / 1000);
 
-                int decimal = max-(max/60)*60;
-                String d = String.valueOf(max-(max/60)*60);
-                if (decimal<10){
-                    d=0+String.valueOf(decimal);
-                }
-                String c = String.valueOf(max/60) + ":" + d;
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        missed.setText(c);
+                    int decimal = max - (max / 60) * 60;
+                    String d = String.valueOf(max - (max / 60) * 60);
+                    if (decimal < 10) {
+                        d = 0 + String.valueOf(decimal);
                     }
-                });
+                    String c = String.valueOf(max / 60) + ":" + d;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            missed.setText(c);
+                        }
+                    });
+                }
             }
         }, 1000, 1000);
 
@@ -309,40 +323,6 @@ public class TestServiceShit extends AppCompatActivity{
                 }
             }
         });
-
-//        mService.mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//            @Override
-//            public void onCompletion(MediaPlayer mediaPlayer) {
-//                if ((index_playlist==recommendation.size()-1)){
-//                    mService.recommendation=recommendation;
-//                }
-//                index_playlist+=1;
-//                song=recommendation.get(index_playlist);
-//                image_url=song.getImage();
-//                Thread t = new Thread() {
-//                    public void run() {
-//                        InputStream is = null;
-//                        try {
-//                            is = (InputStream) new URL(image_url).getContent();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                        d = Drawable.createFromStream(is, "blurry image");
-//                        d.setAlpha(180);
-//                        LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-//                        linearLayout.setBackgroundDrawable(d);
-//                        blurBackground();
-//                    }
-//                };
-//                t.start();
-//                start_music();
-//                try {
-//                    t.join();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
 
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -365,7 +345,14 @@ public class TestServiceShit extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 if (loop==0) {
-                    if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
+                    if (song_unique){
+                        mService.mediaPlayer.pause();
+                        mService.mediaPlayer.seekTo(0);
+                        seekbar.setProgress(0);
+                        Drawable myDrawable = getResources().getDrawable(R.drawable.play);
+                        play_pause.setImageDrawable(myDrawable);
+                    }
+                    else if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
                         mService.mediaPlayer.stop();
                         mService.mediaPlayer.reset();
                         if ((index_playlist==recommendation.size()-2)) {
@@ -552,8 +539,9 @@ public class TestServiceShit extends AppCompatActivity{
                     String id = j.getString("link");
                     Music m = new Music(title, a, url_image);
                     m.setId(id);
-                    if (!recommendation.contains(m))
+                    if (!recommendation.contains(m)) {
                         recommendation.add(m);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

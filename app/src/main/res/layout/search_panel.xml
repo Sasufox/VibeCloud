@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,26 +10,47 @@
     android:elevation="10dp"
     android:orientation="vertical">
 
-    <View
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="25dp"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="25dp"/>
 
-    <SearchView
-        android:id="@+id/simpleSearchView"
+        <SearchView
+            android:id="@+id/simpleSearchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:clickable="true"
+            android:imeOptions="actionDone"
+            android:inputType="text"
+            android:queryHint="Faites votre recherche"
+            android:singleLine="true" />
+
+        <ListView
+            android:id="@+id/songs_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/simpleSearchView"
+            android:verticalSpacing="10dp"
+            tools:listitem="@layout/adapter_song_test2" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_above="@+id/activity_main_bottom_navigation"
+        />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
-        android:clickable="true"
-        android:imeOptions="actionDone"
-        android:inputType="text"
-        android:queryHint="Faites votre recherche"
-        android:singleLine="true" />
-
-    <ListView
-        android:id="@+id/songs_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/simpleSearchView"
-        android:verticalSpacing="10dp"
-        tools:listitem="@layout/adapter_song_test2" />
-</LinearLayout>
+        android:id="@+id/activity_main_bottom_navigation"
+        android:layout_alignParentBottom="true"
+        app:menu="@menu/bottom_navigation"
+        android:background="@color/nightVeryDark_or_dayLight"
+        >
+    </com.google.android.material.bottomnavigation.BottomNavigationView>
+</RelativeLayout>

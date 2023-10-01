@@ -17,4 +17,8 @@
         android:icon="@drawable/ic_baseline_collections_24"
         android:title="Your Library"
         />
+    <item
+        android:id="@+id/invisible"
+        android:visible="false"
+        android:title="invisible" />
 </menu>

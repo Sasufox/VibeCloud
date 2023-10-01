@@ -1,16 +1,25 @@
 package com.example.vibecloud;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +37,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,31 +49,40 @@ import org.json.JSONObject;
 import eightbitlab.com.blurview.BlurView;
 import eightbitlab.com.blurview.RenderScriptBlur;
 
-public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionListener {
+public class Test extends AppCompatActivity{
 
     //fields
-    TextView nameView, authorView;
-    ImageView imageView, play_pause, nextSong, previousSong, repeat;
-    SeekBar seekbar;
+    public TextView nameView, authorView;
+    public ImageView imageView, play_pause, nextSong, previousSong, repeat;
+    public SeekBar seekbar;
     private int loop=0;
     public volatile String json_return;
-    public ArrayList<Music> listMusicNext = new ArrayList();
     private String web_song_url;
     Context context = this;
-    private ArrayList<Music> recommendation = new ArrayList();
+    public ArrayList<Music> recommendation = new ArrayList();
     public volatile Drawable d;
     public volatile boolean isInRecommendation;
+    public boolean song_unique=false;
 
-    private int index_playlist, max;
-    PowerManager.WakeLock wl;
+    public int index_playlist, max;
 
     TextView current, missed;
 
     BlurView blurView;
-    MediaPlayer mediaPlayer;
     Music song;
     String image_url, name, author;
     Timer timer;
+    ServiceTest mService;
+    boolean mBound;
+    Intent service;
+
+    Thread t;
+
+    boolean isOnResume;
+    boolean demarremtn=true;
+
+    public volatile int looping_trap;
+
 
     @SuppressLint("InvalidWakeLockTag")
     @Override
@@ -77,6 +96,7 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
         }
 
         //extracting infos from previously Activity
+        System.out.println("ActivityHome " + ActivityHome.serviceOn);
         Intent intent = getIntent();
         Bundle args = intent.getBundleExtra("bundle_recommendation");
         recommendation = (ArrayList<Music>) args.getSerializable("recommendation");
@@ -85,11 +105,12 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
             System.out.println(recommendation.get(i).getName());
         }
 
-        song = recommendation.get(index_playlist);
-        String name = song.getName();
-        String author = song.getAuthor();
-        image_url = song.getImage();
-        web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
+        if (recommendation.size()<=1){
+            song_unique=true;
+            mService.song_unique=true;
+        }
+
+        System.out.println("Song_unique = " + song_unique);
 
         current = findViewById(R.id.song_current);
         missed = findViewById(R.id.song_missed);
@@ -110,86 +131,200 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
 
         repeat = findViewById(R.id.repeat);
 
-        //Starting song
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        service=new Intent(this, ServiceTest.class);
 
-        Thread t = new Thread() {
-            public void run() {
-                InputStream is = null;
-                try {
-                    is = (InputStream) new URL(image_url).getContent();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                d = Drawable.createFromStream(is, "blurry image");
-                d.setAlpha(180);
-                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                linearLayout.setBackgroundDrawable(d);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (ActivityHome.serviceOn) {
+                mService.mediaPlayer.stop();
+                mService.mediaPlayer.reset();
+                mService.mediaPlayer.release();
+                mService.index_playlist=0;
             }
-        };
-        web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
-        start_music();
-
-        try {
-            mediaPlayer.setDataSource(web_song_url);
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
+            else{
+                startForegroundService(service);
+            }
         }
 
-        timer=new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                while (!mediaPlayer.isPlaying());
-                max = mediaPlayer.getDuration()/1000;
-                seekbar.setMax(max);
-                seekbar.setProgress(mediaPlayer.getCurrentPosition()/1000);
+        if (demarremtn) isOnResume=false;
+        demarremtn=false;
+        System.out.println(isOnResume);
+        if (!isOnResume) {
+            mService.recommendation = recommendation;
+            activity_action();
+        }
+        else {
+            recommendation = mService.recommendation;
+            index_playlist = mService.index_playlist;
+            song = recommendation.get(index_playlist);
+            image_url = song.getImage();
 
-                int decimal = max-(max/60)*60;
-                String d = String.valueOf(max-(max/60)*60);
-                if (decimal<10){
-                    d=0+String.valueOf(decimal);
-                }
-                String c = String.valueOf(max/60) + ":" + d;
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        missed.setText(c);
-                    }
-                });
+            background();
+            start_music();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        }, 1000, 1000);
+        }
+    }
 
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mp.start();
-            }
-        });
-        System.out.println("TEST ICI HEHOOO");
-        t.start();
+    public void blurBackground() {
+        float radius = 5f;
+
+        View decorView = getWindow().getDecorView();
+        //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
+        ViewGroup rootView = (ViewGroup) decorView.findViewById(android.R.id.content);
+        Drawable windowBackground = decorView.getBackground();
+
+        blurView.setupWith(rootView)
+                .setFrameClearDrawable(windowBackground)
+                .setBlurAlgorithm(new RenderScriptBlur(this))
+                .setBlurRadius(radius)
+                .setBlurAutoUpdate(true);
+
+    }
+
+    public void setIndex_playlist(int i){
+        this.index_playlist=i;
+    }
+
+    public void onBackPressed() {
+        timer.cancel();
+        if (!mService.mediaPlayer.isPlaying()){
+            stopService(service);
+        }
+        else {
+            ActivityHome.service = service;
+            ActivityHome.serviceOn = true;
+        }
+        Intent otherActivity;
+        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+        startActivity(otherActivity);
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        recommendation = mService.recommendation;
+        index_playlist = mService.index_playlist;
+        song = recommendation.get(index_playlist);
+        image_url = song.getImage();
+        background();
+        start_music();
         try {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        isOnResume = true;
+        super.onResume();
+    }
 
-        blurBackground();
+    public void background(){
+        t = new Thread() {
+            public void run() {
+                d = ListMusicAdapter.list_d.get(index_playlist);
+                d.setAlpha(180);
+                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+                linearLayout.setBackgroundDrawable(d);
+                blurBackground();
+            }
+        };
+        t.start();
+    }
+
+    public void activity_action(){
+        mService.recommendation = recommendation;
+
+        background();
+
+        song=recommendation.get(index_playlist);
+        start_music();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        utilise();
+        mService.playlist();
+        while (!mService.mediaPrepared){}
+        timer=new Timer();
+        looping_trap=0;
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (mService.mediaPlayer!=null) {
+                    if (mService.mediaPlayer.isPlaying()) {
+                        looping_trap = 0;
+                        max = mService.mediaPlayer.getDuration() / 1000;
+                        seekbar.setMax(max);
+                        seekbar.setProgress(mService.mediaPlayer.getCurrentPosition() / 1000);
+
+                        int decimal = max - (max / 60) * 60;
+                        String d = String.valueOf(max - (max / 60) * 60);
+                        if (decimal < 10) {
+                            d = 0 + String.valueOf(decimal);
+                        }
+                        String c = String.valueOf(max / 60) + ":" + d;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                missed.setText(c);
+                            }
+                        });
+                    }
+                }
+                else{
+                    looping_trap++;
+                    if (looping_trap>5){
+                        Intent otherActivity;
+                        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+                        startActivity(otherActivity);
+                        finish();
+                    }
+                }
+            }
+        }, 1000, 1000);
+
+        repeat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (loop==0){
+                    loop=1;
+                    mService.loop=1;
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.repeat_loop);
+                    repeat.setImageDrawable(myDrawable);
+                }
+                else{
+                    loop=0;
+                    mService.loop=0;
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.repeat);
+                    repeat.setImageDrawable(myDrawable);
+                }
+            }
+        });
 
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mediaPlayer.isPlaying()){
-                    seekbar.setProgress(mediaPlayer.getCurrentPosition()/1000);
-                    mediaPlayer.pause();
+                if (mService.mediaPlayer.isPlaying()){
+                    seekbar.setProgress(mService.mediaPlayer.getCurrentPosition()/1000);
+                    mService.mediaPlayer.pause();
                     Drawable myDrawable = getResources().getDrawable(R.drawable.play);
                     play_pause.setImageDrawable(myDrawable);
                 }
                 else{
-                    mediaPlayer.start();
+                    mService.mediaPlayer.start();
                     Drawable myDrawable = getResources().getDrawable(R.drawable.pause);
                     play_pause.setImageDrawable(myDrawable);
                 }
@@ -200,9 +335,16 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
             @Override
             public void onClick(View view) {
                 if (loop==0) {
-                    if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
-                        mediaPlayer.stop();
-                        mediaPlayer.reset();
+                    if (song_unique){
+                        mService.mediaPlayer.pause();
+                        mService.mediaPlayer.seekTo(0);
+                        seekbar.setProgress(0);
+                        Drawable myDrawable = getResources().getDrawable(R.drawable.play);
+                        play_pause.setImageDrawable(myDrawable);
+                    }
+                    else if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
+                        mService.mediaPlayer.stop();
+                        mService.mediaPlayer.reset();
                         if ((index_playlist==recommendation.size()-2)) {
                             Thread t2 = new Thread() {
                                 public void run() {
@@ -213,36 +355,23 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                             t2.start();
                         }
                         index_playlist++;
+                        mService.index_playlist++;
 
                         song=recommendation.get(index_playlist);
                         image_url=song.getImage();
 
-                        Thread t = new Thread() {
-                            public void run() {
-                                InputStream is = null;
-                                try {
-                                    is = (InputStream) new URL(image_url).getContent();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                d = Drawable.createFromStream(is, "blurry image");
-                                d.setAlpha(180);
-                            }
-                        };
-                        t.start();
+                        background();
                         start_music();
 
                         web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
                         try {
-                            mediaPlayer.setDataSource(web_song_url);
-                            mediaPlayer.prepareAsync();
+                            mService.mediaPlayer.setDataSource(web_song_url);
+                            mService.mediaPlayer.prepareAsync();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         try {
                             t.join();
-                            LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                            linearLayout.setBackgroundDrawable(d);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -255,13 +384,13 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                         };
                         t.start();
 
-                        mediaPlayer.seekTo(0);
-                        mediaPlayer.start();
+                        mService.mediaPlayer.seekTo(0);
+                        mService.mediaPlayer.start();
                     }
                 }
                 else{
-                    mediaPlayer.seekTo(0);
-                    mediaPlayer.start();
+                    mService.mediaPlayer.seekTo(0);
+                    mService.mediaPlayer.start();
                 }
             }
         });
@@ -269,49 +398,34 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
         previousSong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (index_playlist!=0) {
-                    mediaPlayer.stop();
-                    mediaPlayer.reset();
+                if (index_playlist!=0 && loop!=1) {
+                    mService.mediaPlayer.stop();
+                    mService.mediaPlayer.reset();
                     index_playlist--;
+                    mService.index_playlist--;
 
                     song=recommendation.get(index_playlist);
                     image_url=song.getImage();
 
-                    Thread t = new Thread() {
-                        public void run() {
-                            InputStream is = null;
-                            try {
-                                is = (InputStream) new URL(image_url).getContent();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            d = Drawable.createFromStream(is, "blurry image");
-                            d.setAlpha(180);
-                            LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                            linearLayout.setBackgroundDrawable(d);
-                        }
-                    };
-                    t.start();
+                    background();
                     start_music();
                     web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
                     try {
-                        mediaPlayer.setDataSource(web_song_url);
-                        mediaPlayer.prepareAsync();
+                        mService.mediaPlayer.setDataSource(web_song_url);
+                        mService.mediaPlayer.prepareAsync();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     try {
                         t.join();
-                        LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                        linearLayout.setBackgroundDrawable(d);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
                 else {
                     System.out.println(index_playlist);
-                    mediaPlayer.seekTo(0);
-                    mediaPlayer.start();
+                    mService.mediaPlayer.seekTo(0);
+                    mService.mediaPlayer.start();
                 }
             }
         });
@@ -320,7 +434,7 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
                 if(fromUser) {
-                    mediaPlayer.seekTo(seekbar.getProgress() * 1000);
+                    mService.mediaPlayer.seekTo(seekbar.getProgress() * 1000);
                 }
                 int time = seekBar.getProgress();
                 int decimal = time-(time/60)*60;
@@ -341,48 +455,31 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+    }
 
-        repeat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (loop==0){
-                    loop=1;
-                    Drawable myDrawable = getResources().getDrawable(R.drawable.repeat_loop);
-                    repeat.setImageDrawable(myDrawable);
+    public Drawable getImage(String url){
+
+        Thread t = new Thread() {
+            public void run() {
+                InputStream is = null;
+                try {
+                    is = (InputStream) new URL(url).getContent();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                else{
-                    loop=0;
-                    Drawable myDrawable = getResources().getDrawable(R.drawable.repeat);
-                    repeat.setImageDrawable(myDrawable);
-                }
+                d = Drawable.createFromStream(is, "blurry image");
             }
-        });
-
-        mediaPlayer.setOnCompletionListener(this);
-
-
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
-        wl.acquire();
-
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return d;
     }
 
-    private void blurBackground() {
-        float radius = 5f;
-
-        View decorView = getWindow().getDecorView();
-        //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
-        ViewGroup rootView = (ViewGroup) decorView.findViewById(android.R.id.content);
-        Drawable windowBackground = decorView.getBackground();
-
-        blurView.setupWith(rootView)
-                .setFrameClearDrawable(windowBackground)
-                .setBlurAlgorithm(new RenderScriptBlur(this))
-                .setBlurRadius(radius)
-                .setBlurAutoUpdate(true);
-
-    }
-
+    // Fonctions actions
     public void continueRecommendation(String song){
         if (!isInRecommendation) {
             isInRecommendation=true;
@@ -424,18 +521,16 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
                     String id = j.getString("link");
                     Music m = new Music(title, a, url_image);
                     m.setId(id);
-                    if (!recommendation.contains(m))
+                    if (!recommendation.contains(m)) {
                         recommendation.add(m);
+                        ListMusicAdapter.list_d.add(getImage(url_image));
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
             isInRecommendation=false;
         }
-    }
-
-    public void setIndex_playlist(int i){
-        this.index_playlist=i;
     }
 
     public void start_music(){
@@ -447,96 +542,37 @@ public class Test extends AppCompatActivity implements MediaPlayer.OnCompletionL
         nameView.setText(name);
         authorView.setText(author);
 
-        Glide.with(this).load(image_url).into(imageView);
-        System.out.println(web_song_url);
+        Glide.with(this).load(ListMusicAdapter.list_d.get(index_playlist)).into(imageView);
+        System.out.println(song.getId());
     }
 
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        if (loop==0){
-            if (!(index_playlist==recommendation.size()-1) && !isInRecommendation) {
-                mediaPlayer.stop();
-                mediaPlayer.reset();
-
-                if ((index_playlist==recommendation.size()-2)) {
-                    Thread t2 = new Thread() {
-                        public void run() {
-                            System.out.println(index_playlist + " " + recommendation.toString());
-                            continueRecommendation(recommendation.get(index_playlist).getId());
-                        }
-                    };
-                    t2.start();
-                }
-                index_playlist++;
-
-                song=recommendation.get(index_playlist);
-                image_url=song.getImage();
-
-                Thread t = new Thread() {
-                    public void run() {
-                        InputStream is = null;
+    public void utilise(){
+        mService.isreco = new MutableLiveData<>();
+        mService.isreco.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(final Boolean newBooleanValue) {
+                if (mService.isreco.getValue()==true) {
+                    System.out.println("HEHO LES GAYS");
+                    if ((index_playlist == recommendation.size() - 1)) {
+                        mService.recommendation = recommendation;
+                    }
+                    if (loop==0) {
+                        index_playlist += 1;
+                        song = recommendation.get(index_playlist);
+                        image_url = song.getImage();
+                        background();
+                        blurBackground();
+                        start_music();
                         try {
-                            is = (InputStream) new URL(image_url).getContent();
-                        } catch (IOException e) {
+                            t.join();
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        d = Drawable.createFromStream(is, "blurry image");
-                        d.setAlpha(180);
+                        mService.isreco.setValue(false);
                     }
-                };
-                t.start();
-                start_music();
-
-                web_song_url = MusicSelection.url_base + "static/youtube/" + song.getId();
-                try {
-                    mediaPlayer.setDataSource(web_song_url);
-                    mediaPlayer.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    t.join();
-                    LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                    linearLayout.setBackgroundDrawable(d);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
-            else{
-                Thread t = new Thread() {
-                    public void run() {
-                        continueRecommendation(recommendation.get(index_playlist).getId());
-                    }
-                };
-                t.start();
-
-                mediaPlayer.seekTo(0);
-                mediaPlayer.start();
-            }
-        }
-        else{
-            System.out.println("HERE1");
-            mediaPlayer.seekTo(0);
-            mediaPlayer.start();
-        }
+        });
     }
 
-    public void onBackPressed() {
-        mediaPlayer.stop();
-        Intent otherActivity;
-        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
-        startActivity(otherActivity);
-        finish();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        wl.release();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
 }

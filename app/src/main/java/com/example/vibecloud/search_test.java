@@ -1,5 +1,6 @@
 package com.example.vibecloud;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
@@ -9,12 +10,19 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.SearchView;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +36,7 @@ public class search_test extends AppCompatActivity {
     SearchView searchView;
     public volatile String json_return;
     private MediaPlayer mediaPlayer;
+    BottomNavigationView navigationView;
     ArrayList<Music> listMusic = new ArrayList();
 
     @Override
@@ -51,6 +60,31 @@ public class search_test extends AppCompatActivity {
 
         ListView listItems = findViewById(R.id.songs_list);
         listItems.setAdapter(new ListMusicAdapter(this, listMusic));
+
+        registerForContextMenu(listItems);
+        navigationView = findViewById(R.id.activity_main_bottom_navigation);
+        navigationView.setSelectedItemId(R.id.search);
+
+        navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.search:
+                        return true;
+                    case R.id.home:
+                        Intent otherActivity2 = new Intent(getApplicationContext(), ActivityHome.class);
+                        startActivity(otherActivity2);
+                        finish();
+                        return true;
+                    case R.id.library:
+                        Intent otherActivity3 = new Intent(getApplicationContext(), Library.class);
+                        startActivity(otherActivity3);
+                        finish();
+                        return true;
+                }
+                return false;
+            }
+        });
 
         searchView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -133,13 +167,13 @@ public class search_test extends AppCompatActivity {
 
     public void onBackPressed() {
         Intent otherActivity;
-        if (listMusic.size()>0) {
+        if (listMusic.size() > 0) {
             otherActivity = new Intent(getApplicationContext(), search_test.class);
-        }
-        else {
+        } else {
             otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
         }
         startActivity(otherActivity);
         finish();
     }
+
 }

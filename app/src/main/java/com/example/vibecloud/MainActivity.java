@@ -38,7 +38,9 @@ public class MainActivity extends AppCompatActivity {
     Button login, cancel;
     EditText username_insert, password_insert;
     TextView createAccount;
-    public volatile String token;
+    public static volatile String token;
+
+    public static volatile String name;
 
     // Handle server request exception inside a thread
     private volatile RequestException requestException = null;
@@ -114,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
                 Ed_adr.putString("address", address);
                 Ed.commit();
                 Ed_adr.commit();
+                name=username;
+                System.out.println(name);
 
                 Intent activityHome = new Intent(getApplicationContext(), ActivityHome.class);
                 startActivity(activityHome);

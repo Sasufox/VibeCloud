@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -78,10 +79,18 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
                         startActivity(otherActivity);
                         finish();
                         return true;
+                    case R.id.library:
+                        Intent otherActivity2 = new Intent(getApplicationContext(), Library.class);
+                        startActivity(otherActivity2);
+                        finish();
+                        return true;
                 }
                 return false;
             }
         });
+
+        int nightModeFlags = this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        System.out.println("Darkmode : " + nightModeFlags);
 
         //ListSongs recommandés
         ExpandableHeightGridView mAppsGrid = (ExpandableHeightGridView) findViewById(R.id.grid_pop_songs);
