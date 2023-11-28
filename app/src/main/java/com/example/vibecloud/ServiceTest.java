@@ -82,6 +82,7 @@ public class ServiceTest extends Service {
     static Music song;
     String image_url, name, author;
     static MutableLiveData<Boolean> isreco;
+    static MutableLiveData<Boolean> isreco2;
     static boolean mediaPrepared;
     static boolean song_unique;
     static RemoteViews notificationLayout;
@@ -97,10 +98,12 @@ public class ServiceTest extends Service {
         mediaPrepared = false;
         System.out.println("PREPARED???? " + mediaPrepared);
         isreco.setValue(false);
+        //isreco2.setValue(false);
         mediaPlayer = new MediaPlayer();
         mediaPlayer.reset();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         web_song_url = MusicSelection.url_base + "static/youtube/" + recommendation.get(index_playlist).getId();
+        System.out.println(web_song_url);
 
         try {
             mediaPlayer.setDataSource(web_song_url);
@@ -115,6 +118,7 @@ public class ServiceTest extends Service {
             public void onPrepared(MediaPlayer mp) {
                 mp.start();
                 isPlaying = true;
+                ActivityHome.serviceOn=true;
                 updateNotification();
             }
         });
@@ -137,6 +141,8 @@ public class ServiceTest extends Service {
                                     System.out.println(index_playlist + " " + recommendation.toString());
                                     continueRecommendation(recommendation.get(index_playlist).getId());
                                     isreco.postValue(true);
+                                    if (isreco2!=null)
+                                        isreco2.postValue(true);
                                 }
                             };
                             t2.start();
@@ -152,6 +158,11 @@ public class ServiceTest extends Service {
                             if (!isreco.getValue() == true) {
                                 isreco.setValue(true);
                             }
+                            if (isreco2!=null) {
+                                if (!isreco2.getValue() == true) {
+                                    isreco2.setValue(true);
+                                }
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -160,6 +171,7 @@ public class ServiceTest extends Service {
                             public void run() {
                                 continueRecommendation(recommendation.get(index_playlist).getId());
                                 isreco.setValue(true);
+                                isreco2.setValue(true);
                             }
                         };
                         t.start();
@@ -180,6 +192,8 @@ public class ServiceTest extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 //        Bundle b = intent.getBundleExtra("bundle_song");
 //        String song = b.getString("song");
+        isreco.setValue(false);
+        //isreco2.setValue(false);
 
         p_b = getResources().getDrawable(R.drawable.play_botton);
         pause_b = getResources().getDrawable(R.drawable.pause_botton);
@@ -234,6 +248,7 @@ public class ServiceTest extends Service {
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(notificationLayout)
                 .setCustomBigContentView(notificationLayoutExpanded)
+                .setPriority(Notification.PRIORITY_HIGH)
                 .build();
         startForeground(2, notification);
         System.out.println("Niggers");
@@ -276,8 +291,9 @@ public class ServiceTest extends Service {
         builder = new NotificationCompat.Builder(this, "notification");
         builder.setSmallIcon(R.drawable.app_icon);
         builder.setStyle(new NotificationCompat.DecoratedCustomViewStyle());
-        builder.setCustomContentView(notificationLayout);
+        builder.setCustomBigContentView(notificationLayout);
         builder.setAutoCancel(true);
+        builder.setPriority(Notification.PRIORITY_HIGH);
         notificationLayout.setOnClickPendingIntent(R.id.next, nextIntent);
         notificationLayout.setOnClickPendingIntent(R.id.previous, previousIntent);
         notificationLayout.setOnClickPendingIntent(R.id.pause_play, pause_playIntent);
@@ -307,6 +323,7 @@ public class ServiceTest extends Service {
                                     System.out.println(index_playlist + " " + recommendation.toString());
                                     continueRecommendation(recommendation.get(index_playlist).getId());
                                     isreco.postValue(true);
+                                    isreco2.postValue(true);
                                 }
                             };
                             t2.start();
@@ -322,6 +339,9 @@ public class ServiceTest extends Service {
                             if (!isreco.getValue() == true) {
                                 isreco.setValue(true);
                             }
+                            if (!isreco2.getValue() == true) {
+                                isreco2.setValue(true);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -330,6 +350,7 @@ public class ServiceTest extends Service {
                             public void run() {
                                 continueRecommendation(recommendation.get(index_playlist).getId());
                                 isreco.setValue(true);
+                                isreco2.setValue(true);
                             }
                         };
                         t.start();

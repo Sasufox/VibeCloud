@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -53,7 +54,7 @@ public class Test extends AppCompatActivity{
 
     //fields
     public TextView nameView, authorView;
-    public ImageView imageView, play_pause, nextSong, previousSong, repeat;
+    public ImageView imageView, play_pause, nextSong, previousSong, repeat, playlist;
     public SeekBar seekbar;
     private int loop=0;
     public volatile String json_return;
@@ -88,7 +89,7 @@ public class Test extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_music_listening);
+        setContentView(R.layout.test_blur);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window w = getWindow();
@@ -97,9 +98,15 @@ public class Test extends AppCompatActivity{
 
         //extracting infos from previously Activity
         System.out.println("ActivityHome " + ActivityHome.serviceOn);
-        Intent intent = getIntent();
-        Bundle args = intent.getBundleExtra("bundle_recommendation");
-        recommendation = (ArrayList<Music>) args.getSerializable("recommendation");
+
+        if (!ActivityHome.backToListening) {
+            Intent intent = getIntent();
+            Bundle args = intent.getBundleExtra("bundle_recommendation");
+            recommendation = (ArrayList<Music>) args.getSerializable("recommendation");
+        }
+        else{
+            recommendation=mService.recommendation;
+        }
 
         for (int i=0; i<recommendation.size(); i++){
             System.out.println(recommendation.get(i).getName());
@@ -130,171 +137,16 @@ public class Test extends AppCompatActivity{
         authorView.setText(author);
 
         repeat = findViewById(R.id.repeat);
+        playlist = findViewById(R.id.playlist);
 
-        service=new Intent(this, ServiceTest.class);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (ActivityHome.serviceOn) {
-                mService.mediaPlayer.stop();
-                mService.mediaPlayer.reset();
-                mService.mediaPlayer.release();
-                mService.index_playlist=0;
-            }
-            else{
-                startForegroundService(service);
-            }
-        }
-
-        if (demarremtn) isOnResume=false;
-        demarremtn=false;
-        System.out.println(isOnResume);
-        if (!isOnResume) {
-            mService.recommendation = recommendation;
-            activity_action();
-        }
-        else {
-            recommendation = mService.recommendation;
-            index_playlist = mService.index_playlist;
-            song = recommendation.get(index_playlist);
-            image_url = song.getImage();
-
-            background();
-            start_music();
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void blurBackground() {
-        float radius = 5f;
-
-        View decorView = getWindow().getDecorView();
-        //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
-        ViewGroup rootView = (ViewGroup) decorView.findViewById(android.R.id.content);
-        Drawable windowBackground = decorView.getBackground();
-
-        blurView.setupWith(rootView)
-                .setFrameClearDrawable(windowBackground)
-                .setBlurAlgorithm(new RenderScriptBlur(this))
-                .setBlurRadius(radius)
-                .setBlurAutoUpdate(true);
-
-    }
-
-    public void setIndex_playlist(int i){
-        this.index_playlist=i;
-    }
-
-    public void onBackPressed() {
-        timer.cancel();
-        if (!mService.mediaPlayer.isPlaying()){
-            stopService(service);
-        }
-        else {
-            ActivityHome.service = service;
-            ActivityHome.serviceOn = true;
-        }
-        Intent otherActivity;
-        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
-        startActivity(otherActivity);
-        finish();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        recommendation = mService.recommendation;
-        index_playlist = mService.index_playlist;
-        song = recommendation.get(index_playlist);
-        image_url = song.getImage();
-        background();
-        start_music();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        isOnResume = true;
-        super.onResume();
-    }
-
-    public void background(){
-        t = new Thread() {
-            public void run() {
-                d = ListMusicAdapter.list_d.get(index_playlist);
-                d.setAlpha(180);
-                LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
-                linearLayout.setBackgroundDrawable(d);
-                blurBackground();
-            }
-        };
-        t.start();
-    }
-
-    public void activity_action(){
-        mService.recommendation = recommendation;
-
-        background();
-
-        song=recommendation.get(index_playlist);
-        start_music();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        utilise();
-        mService.playlist();
-        while (!mService.mediaPrepared){}
-        timer=new Timer();
-        looping_trap=0;
-        timer.schedule(new TimerTask() {
+        playlist.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void run() {
-                if (mService.mediaPlayer!=null) {
-                    if (mService.mediaPlayer.isPlaying()) {
-                        looping_trap = 0;
-                        max = mService.mediaPlayer.getDuration() / 1000;
-                        seekbar.setMax(max);
-                        seekbar.setProgress(mService.mediaPlayer.getCurrentPosition() / 1000);
-
-                        int decimal = max - (max / 60) * 60;
-                        String d = String.valueOf(max - (max / 60) * 60);
-                        if (decimal < 10) {
-                            d = 0 + String.valueOf(decimal);
-                        }
-                        String c = String.valueOf(max / 60) + ":" + d;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                missed.setText(c);
-                            }
-                        });
-                    }
-                }
-                else{
-                    looping_trap++;
-                    if (looping_trap>5){
-                        Intent otherActivity;
-                        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
-                        startActivity(otherActivity);
-                        finish();
-                    }
-                }
+            public void onClick(View view) {
+                Intent otherActivity = new Intent(getApplicationContext(), CurrentPlaylist_Discord.class);
+                startActivity(otherActivity);
+                finish();
             }
-        }, 1000, 1000);
+        });
 
         repeat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -455,6 +307,246 @@ public class Test extends AppCompatActivity{
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+
+        service=new Intent(this, ServiceTest.class);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (ActivityHome.serviceOn) {
+                if (ActivityHome.backToListening){
+                    index_playlist=mService.index_playlist;
+                }
+                else {
+                    mService.mediaPlayer.stop();
+                    mService.mediaPlayer.reset();
+                    mService.mediaPlayer.release();
+                    mService.index_playlist = 0;
+                }
+            }
+            else{
+                startForegroundService(service);
+            }
+        }
+
+        if (demarremtn) isOnResume=false;
+        demarremtn=false;
+        System.out.println(isOnResume);
+        if (!isOnResume && !ActivityHome.backToListening) {
+            mService.recommendation = recommendation;
+            mService.index_playlist=0;
+            activity_action();
+        }
+        else {
+            recommendation = mService.recommendation;
+            index_playlist = mService.index_playlist;
+            song = recommendation.get(index_playlist);
+            image_url = song.getImage();
+
+            //##########################################
+            if (ActivityHome.backToListening){
+                if (!mService.mediaPlayer.isPlaying()){
+                    //##################################################################
+                    int max = mService.mediaPlayer.getDuration() / 1000;
+                    seekbar.setMax(max);
+                    seekbar.setProgress(mService.mediaPlayer.getCurrentPosition() / 1000);
+                    int decimal = max - (max / 60) * 60;
+                    String d = String.valueOf(max - (max / 60) * 60);
+                    if (decimal < 10) {
+                        d = 0 + String.valueOf(decimal);
+                    }
+                    String c = String.valueOf(max / 60) + ":" + d;
+                    missed.setText(c);
+                    //##################################################################
+                    Drawable myDrawable = getResources().getDrawable(R.drawable.play);
+                    play_pause.setImageDrawable(myDrawable);
+                }
+
+                timer=new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (mService.mediaPlayer != null) {
+                                if (mService.mediaPlayer.isPlaying()) {
+                                    looping_trap = 0;
+                                    int max = mService.mediaPlayer.getDuration() / 1000;
+                                    seekbar.setMax(max);
+                                    seekbar.setProgress(mService.mediaPlayer.getCurrentPosition() / 1000);
+                                    int decimal = max - (max / 60) * 60;
+                                    String d = String.valueOf(max - (max / 60) * 60);
+                                    if (decimal < 10) {
+                                        d = 0 + String.valueOf(decimal);
+                                    }
+                                    String c = String.valueOf(max / 60) + ":" + d;
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            missed.setText(c);
+                                        }
+                                    });
+                                }
+                            } else {
+                                looping_trap++;
+                                if (looping_trap > 5) {
+                                    Intent otherActivity;
+                                    otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+                                    startActivity(otherActivity);
+                                    finish();
+                                }
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Timer cancelled too late");
+                            timer.cancel();
+                        }
+                    }
+                }, 1000, 1000);
+                utilise();
+                mService.isreco.setValue(false);
+            }
+            //##########################################
+            /*background();
+            start_music();*/
+        }
+    }
+
+    public void blurBackground() {
+        float radius = 5f;
+
+        View decorView = getWindow().getDecorView();
+        //ViewGroup you want to start blur from. Choose root as close to BlurView in hierarchy as possible.
+        ViewGroup rootView = (ViewGroup) decorView.findViewById(android.R.id.content);
+        Drawable windowBackground = decorView.getBackground();
+
+        blurView.setupWith(rootView)
+                .setFrameClearDrawable(windowBackground)
+                .setBlurAlgorithm(new RenderScriptBlur(this))
+                .setBlurRadius(radius)
+                .setBlurAutoUpdate(true);
+    }
+
+    public void setIndex_playlist(int i){
+        this.index_playlist=i;
+    }
+
+    public void onBackPressed() {
+        timer.cancel();
+        timer.purge();
+        System.out.println("Backpressed");
+        if (!mService.mediaPlayer.isPlaying()){
+            ActivityHome.serviceOn=false;
+            ActivityHome.backToListening=false;
+            stopService(service);
+        }
+        else {
+            ActivityHome.service = service;
+            ActivityHome.serviceOn = true;
+        }
+        Intent otherActivity;
+        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+        startActivity(otherActivity);
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        recommendation = mService.recommendation;
+        index_playlist = mService.index_playlist;
+        song = recommendation.get(index_playlist);
+        image_url = song.getImage();
+        background();
+        start_music();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        isOnResume = true;
+        super.onResume();
+    }
+
+    public void background(){
+        t = new Thread() {
+            public void run() {
+                d = ListMusicAdapter.list_d.get(index_playlist);
+                d.setAlpha(180);
+                blurBackground();
+            }
+        };
+        t.start();
+        try {
+            t.join();
+            LinearLayout linearLayout = findViewById(R.id.main_blur_layout);
+            linearLayout.setBackgroundDrawable(d);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void activity_action(){
+        mService.recommendation = recommendation;
+
+        background();
+
+        song=recommendation.get(index_playlist);
+        start_music();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        utilise();
+        mService.playlist();
+        while (!mService.mediaPrepared){}
+        timer=new Timer();
+        looping_trap=0;
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try{
+                    if (mService.mediaPlayer!=null) {
+                        if (mService.mediaPlayer.isPlaying()) {
+                            looping_trap = 0;
+                            max = mService.mediaPlayer.getDuration() / 1000;
+                            seekbar.setMax(max);
+                            seekbar.setProgress(mService.mediaPlayer.getCurrentPosition() / 1000);
+
+                            int decimal = max - (max / 60) * 60;
+                            String d = String.valueOf(max - (max / 60) * 60);
+                            if (decimal < 10) {
+                                d = 0 + String.valueOf(decimal);
+                            }
+                            String c = String.valueOf(max / 60) + ":" + d;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    missed.setText(c);
+                                }
+                            });
+                        }
+                    }
+                    else{
+                        looping_trap++;
+                        if (looping_trap>5){
+                            Intent otherActivity;
+                            otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+                            startActivity(otherActivity);
+                            finish();
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Test Class Exception Timer schedule...");
+                }
+            }
+        }, 1000, 1000);
     }
 
     public Drawable getImage(String url){

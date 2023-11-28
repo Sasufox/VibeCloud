@@ -12,9 +12,8 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="700dp"
-        tools:context=".ActivityHome"
-        android:id="@+id/scrollview">
+        android:layout_height="match_parent"
+        tools:context=".ActivityHome">
 
         <LinearLayout
             android:orientation="vertical"
@@ -37,7 +36,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Good morning"
+                    android:text="Library"
                     android:textSize="26sp"
                     android:layout_weight="1"
                     android:layout_gravity="left"
@@ -57,17 +56,49 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginRight="15dp"
                 android:layout_marginLeft="15dp"
-                android:layout_marginTop="15dp"
-                android:layout_marginRight="15dp">
+                android:orientation="horizontal">
 
-                <com.example.vibecloud.ExpandableHeightGridView
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginRight="15dp"
+                    android:layout_gravity="right"
+                    android:src="@drawable/user"
+                    android:id="@+id/profile_photo"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/grid_pop_songs"
-                    android:horizontalSpacing="10dp"
-                    android:verticalSpacing="10dp"
-                    android:numColumns="2"/>
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="User name"
+                        android:textSize="25sp"
+                        android:layout_weight="1"
+                        android:layout_gravity="left"
+                        android:textStyle="bold"
+                        android:textColor="@color/nightWhite_or_dayBlack"
+                        android:id="@+id/username"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="***********"
+                        android:textSize="20sp"
+                        android:layout_weight="1"
+                        android:layout_gravity="left"
+                        android:textStyle="bold"
+                        android:textColor="@color/nightWhite_or_dayBlack"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -83,7 +114,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Popular Artists"
+                    android:text="Playlists"
                     android:textSize="26sp"
                     android:layout_weight="1"
                     android:layout_gravity="left"
@@ -99,7 +130,7 @@
                 >
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/popular_artists_list"
+                    android:id="@+id/playlist_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:horizontalSpacing="10dp"
@@ -108,44 +139,6 @@
                 </androidx.recyclerview.widget.RecyclerView>
 
             </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginLeft="15dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginBottom="15dp"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Made For You"
-                    android:textSize="26sp"
-                    android:layout_weight="1"
-                    android:layout_gravity="left"
-                    android:textStyle="bold"
-                    android:textColor="@color/nightWhite_or_dayBlack"/>
-
-            </LinearLayout>
-
-            <androidx.core.widget.NestedScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                >
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/popular_songs_list"
-                    android:scrollbars="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:verticalSpacing="10dp"
-                    android:nestedScrollingEnabled="false">
-
-                </androidx.recyclerview.widget.RecyclerView>
-
-            </androidx.core.widget.NestedScrollView>
 
         </LinearLayout></ScrollView>
 
@@ -264,21 +257,21 @@
         </LinearLayout>
     </eightbitlab.com.blurview.BlurView>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_above="@+id/activity_main_bottom_navigation"
-            />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_above="@+id/activity_main_bottom_navigation"
+        />
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/activity_main_bottom_navigation"
-            android:layout_alignParentBottom="true"
-            app:menu="@menu/bottom_navigation"
-            android:background="@color/nightVeryDark_or_dayLight"
-            >
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/activity_main_bottom_navigation"
+        android:layout_alignParentBottom="true"
+        app:menu="@menu/bottom_navigation"
+        android:background="@color/nightVeryDark_or_dayLight"
+        >
 
-        </com.google.android.material.bottomnavigation.BottomNavigationView>
+    </com.google.android.material.bottomnavigation.BottomNavigationView>
 
 </RelativeLayout>

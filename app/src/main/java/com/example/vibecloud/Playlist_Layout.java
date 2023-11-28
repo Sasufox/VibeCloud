@@ -1,34 +1,30 @@
 package com.example.vibecloud;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
+import static com.example.vibecloud.ActivityHome.setWindowFlag;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.KeyEvent;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.PopupMenu;
-import android.widget.SearchView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -38,21 +34,37 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import eightbitlab.com.blurview.BlurView;
 import eightbitlab.com.blurview.RenderScriptBlur;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
-public class search_test extends AppCompatActivity {
+public class Playlist_Layout extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener{
+
+    private ArrayList<Music> listMusic;
+    private BottomNavigationView navigationView;
+
+    private volatile String json_return;
+
+    private ImageButton play_playlist;
+    private ImageButton delete_playlist;
 
     //###################### Nav #################################
     BlurView blurView;
     TextView songName_Nav;
     TextView authorName;
     ImageView songImage;
+    ImageView discord;
     ImageView previous;
     ImageView next;
     ImageView pause_play;
@@ -61,54 +73,80 @@ public class search_test extends AppCompatActivity {
     ListView listItems;
 
     //############################################################
-
     ServiceTest mService;
     static int index;
     public static boolean backToListening;
     public volatile int looping_trap;
-
     //############################################################
 
-    SearchView searchView;
-    public volatile String json_return;
-    private MediaPlayer mediaPlayer;
-    BottomNavigationView navigationView;
-    ArrayList<Music> listMusic = new ArrayList();
-
     Intent service;
+    public volatile String id;
+    public volatile Drawable d;
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.search_panel);
+        setContentView(R.layout.playlist_layout);
         service=new Intent(this, ServiceTest.class);
 
+        listMusic=new ArrayList();
+        TextView playlistName = findViewById(R.id.playlist_name);
+
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
-            ActivityHome.setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
         }
+
         if (Build.VERSION.SDK_INT >= 19) {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
 
         if (Build.VERSION.SDK_INT >= 21) {
-            ActivityHome.setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
 
-        searchView = findViewById(R.id.simpleSearchView);
+        Intent intent = getIntent();
+        Bundle args = intent.getBundleExtra("bundle_playlist");
+        ArrayList<Music> playlist_songs = (ArrayList<Music>) args.getSerializable("playlist_songs");
+        String playlist_name = args.getString("playlist_name");
+        System.out.println("PlayList Name2 = " + playlist_name);
+        playlistName.setText(playlist_name);
+
+        for (int i=0; i<playlist_songs.size(); i++){
+            Music m = playlist_songs.get(i);
+            listMusic.add(m);
+        }
+
+        System.out.println("len list " + listMusic.size());
+        System.out.println("len list2 " + playlist_songs.size());
 
         listItems = findViewById(R.id.songs_list);
-        listItems.setAdapter(new ListMusicAdapter(this, listMusic));
+        listItems.setAdapter(new listMusicPlaylistAdapter(this, listMusic, playlist_name));
 
         registerForContextMenu(listItems);
+
+        //########################## Init song_nav #####################################
+        if (ActivityHome.serviceOn) {
+            setup_song_nav();
+        }
+        //##############################################################################
+
         navigationView = findViewById(R.id.activity_main_bottom_navigation);
-        navigationView.setSelectedItemId(R.id.search);
+        navigationView.setSelectedItemId(R.id.invisible);
+
+        play_playlist = findViewById(R.id.play_playlist);
+        delete_playlist = findViewById(R.id.delete_playlist);
+
+        discord = findViewById(R.id.discord);
 
         navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.search:
+                        Intent otherActivity = new Intent(getApplicationContext(), search_test.class);
+                        startActivity(otherActivity);
+                        finish();
                         return true;
                     case R.id.home:
                         Intent otherActivity2 = new Intent(getApplicationContext(), ActivityHome.class);
@@ -125,104 +163,105 @@ public class search_test extends AppCompatActivity {
             }
         });
 
-        searchView.setOnClickListener(new View.OnClickListener() {
+        play_playlist.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                searchView.setIconified(false);
+            public void onClick(View view) {
+                ListMusicAdapter.list_d=new ArrayList<>();
+                for (Music m : listMusic){
+                    id = m.getId();
+                    System.out.println("{\"video\": \"" + id + "\"}");
+                    ListMusicAdapter.list_d.add(getImage(m.getImage()));
+
+                    Thread t = new Thread() {
+                        public void run() {
+                            String u = null;
+                            try {
+                                u = MainActivity.sendRequest(MusicSelection.url_base + "get", "{\"video\": \"" + id + "\"}");
+                                System.out.println("HELLO "+ u);
+                            } catch (RequestException e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                        }
+                    };
+                    t.start();
+                    try {
+                        t.join();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                ActivityHome.backToListening=false;
+                Intent MusicPlayer = new Intent(view.getContext(), Test.class);
+                MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("recommendation", (Serializable) listMusic);
+                MusicPlayer.putExtra("bundle_recommendation", bundle);
+                MusicPlayer.putExtra("i", 0);
+                ((Activity) view.getContext()).startActivity(MusicPlayer);
+                ((Activity) view.getContext()).finish();
             }
         });
-        searchView.setOnKeyListener(new View.OnKeyListener() {
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                // TODO Auto-generated method stub
-                if (keyCode==KeyEvent.KEYCODE_ENTER) { //Whenever you got user click enter. Get text in edittext and check it equal test1. If it's true do your code in listenerevent of button3
-                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                    inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                }
-                return false;
 
-            }
-         });
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        delete_playlist.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onQueryTextSubmit(String s) {
-                //listMusic=new ArrayList<Music>();
-                listMusic.clear();
+            public void onClick(View view) {
+                destroy_playlist(playlist_name, view);
+            }
+        });
 
-                String search = "{\"query\": \"" + s + "\"}";
-                String url = MusicSelection.url_base + "search";
-                System.out.println(search);
-                System.out.println(url);
-
-                json_return = null;
-
+        discord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 Thread t = new Thread() {
                     public void run() {
                         try {
-                            json_return = MainActivity.sendRequest(url, search);
-                        } catch (RequestException e) {
-                            e.printStackTrace();
+                            requestRicardoMilos(listMusic, 0, 0);
+                        } catch (JSONException | RequestException e) {
+                            throw new RuntimeException(e);
                         }
-                        System.out.println("JSON RETURN = " + json_return);
                     }
                 };
                 t.start();
-                try {
-                    t.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                if(json_return == null)
-                    return false;
-
-                try {
-
-                    JSONArray ja = new JSONArray(json_return);
-                    for (int i=0; i<ja.length(); i++){
-                        //MUSIC
-                        JSONObject j = ja.getJSONObject(i);
-                        String title = j.getString("title");
-                        String url_image = j.getString("thumbnail");
-                        String a = j.getString("artists");
-                        String id = j.getString("link");
-                        Music m = new Music(title, a, url_image);
-                        m.setId(id);
-                        listMusic.add(m);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                searchView.clearFocus();
-                listItems.invalidateViews();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                return false;
             }
         });
 
-        //########################## Init song_nav #####################################
-        if (ActivityHome.serviceOn) {
-            setup_song_nav();
-        }
-        //##############################################################################
     }
 
-    public void onBackPressed() {
-        Intent otherActivity;
-        if (listMusic.size() > 0) {
-            otherActivity = new Intent(getApplicationContext(), search_test.class);
-        } else {
-            otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
-        }
-        startActivity(otherActivity);
-        finish();
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 
+    public void destroy_playlist(String playlist_name, View v){
+        String search = MainActivity.token;
+        String url = MusicSelection.url_base + "delete_playlist";
+        String url2=url;
 
-    //######################### NAV NAV ###############################################
+        String sub = search.replace("{", "").replace("}", "");
+        sub = "{" + sub + ", \"playlist\" : \"" + playlist_name + "\"}";
+        String s = sub;
+        Thread t = new Thread() {
+            public void run() {
+                String r = null;
+                try {
+                    r = MainActivity.sendRequest(url2, s);
+                } catch (RequestException e) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                if (r!=null){
+                    Intent MusicPlayer = new Intent(v.getContext(), Library.class);
+                    MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    v.getContext().startActivity(MusicPlayer);
+                    ((Activity)v.getContext()).finish();
+                }
+            }
+        };
+        t.start();
+    }
+
     public void setup_song_nav(){
         //###############################################
         authorName = findViewById(R.id.artistName);
@@ -234,14 +273,15 @@ public class search_test extends AppCompatActivity {
         seekbar = findViewById(R.id.seekbar);
         blurView = findViewById(R.id.activity_main_blur);
 
+        LinearLayout names = findViewById(R.id.names);
         //###############################################
 
         //######## init ############
         index = mService.index_playlist;
         Music song = mService.recommendation.get(mService.index_playlist);
 
-        listItems.getLayoutParams().height=1700;
         blurView.setVisibility(View.VISIBLE);
+        listItems.getLayoutParams().height=550;
         background();
         reset_FrontEnd();
         utilise();
@@ -465,6 +505,41 @@ public class search_test extends AppCompatActivity {
         });
     }
 
+    public static void requestRicardoMilos(ArrayList<Music> listMusic, int timer, int index) throws JSONException, RequestException {
+        final MediaType JSON = MediaType.parse("application/json");
+
+        OkHttpClient client = new OkHttpClient();
+        JSONObject jo = new JSONObject();
+        jo.put("list", musicToJSON(listMusic));
+        jo.put("index", index);
+        jo.put("timer", timer);
+
+        RequestBody body = RequestBody.create(jo.toString(), JSON);
+        String url = "http://144.24.203.145:6969";
+        Request request = new Request.Builder().url(url).header("Content-Type", "application/json").post(body).build();
+
+        try {
+            Response response = client.newCall(request).execute();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return;
+    }
+
+    public static JSONArray musicToJSON(ArrayList<Music> listMusic){
+        JSONArray ja = new JSONArray();
+        for (Music m : listMusic){
+            JSONObject jo = new JSONObject();
+            try {
+                jo.put("id", m.getId());
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+            ja.put(jo);
+        }
+        return ja;
+    }
+
     @Override
     protected void onResume() {
         if (ActivityHome.serviceOn) {
@@ -473,6 +548,39 @@ public class search_test extends AppCompatActivity {
             utilise();
         }
         super.onResume();
+    }
+
+    public Drawable getImage(String url){
+
+        Thread t = new Thread() {
+            public void run() {
+                InputStream is = null;
+                try {
+                    is = (InputStream) new URL(url).getContent();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                d = Drawable.createFromStream(is, "blurry image");
+            }
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return d;
+    }
+
+    public void onBackPressed() {
+        if (ActivityHome.serviceOn) {
+            timer.cancel();
+            ActivityHome.progressBar = seekbar.getProgress();
+        }
+        Intent otherActivity;
+        otherActivity = new Intent(getApplicationContext(), Library.class);
+        startActivity(otherActivity);
+        finish();
     }
 
 }

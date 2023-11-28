@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_song"
+        android:title="Play Song" />
+    <item
+        android:id="@+id/discord_stream"
+        android:title="Discord" />
+    <item
+        android:id="@+id/action_delete_playlist"
+        android:title="Delete from Queue" />
+    <item
+        android:id="@+id/action_back"
+        android:title="Back" />
+</menu>

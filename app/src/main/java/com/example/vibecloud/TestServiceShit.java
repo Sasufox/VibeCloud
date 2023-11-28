@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -52,7 +53,7 @@ public class TestServiceShit extends AppCompatActivity{
 
     //fields
     public TextView nameView, authorView;
-    public ImageView imageView, play_pause, nextSong, previousSong, repeat;
+    public ImageView imageView, play_pause, nextSong, previousSong, repeat, playlist;
     public SeekBar seekbar;
     private int loop=0;
     public volatile String json_return;
@@ -83,7 +84,7 @@ public class TestServiceShit extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_music_listening);
+        setContentView(R.layout.test_blur);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window w = getWindow();
@@ -120,11 +121,12 @@ public class TestServiceShit extends AppCompatActivity{
         nextSong = findViewById(R.id.next);
         previousSong = findViewById(R.id.previous);
         blurView = findViewById(R.id.blur_layout);
-
         nameView.setText(name);
         authorView.setText(author);
 
         repeat = findViewById(R.id.repeat);
+
+        playlist = findViewById(R.id.playlist);
 
         service=new Intent(this, ServiceTest.class);
 

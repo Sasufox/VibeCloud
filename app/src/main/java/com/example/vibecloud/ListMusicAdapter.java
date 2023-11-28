@@ -164,6 +164,7 @@ public class ListMusicAdapter extends BaseAdapter{
                                 e.printStackTrace();
                             }
 
+                            ActivityHome.backToListening=false;
                             Intent MusicPlayer = new Intent(context, Test.class);
                             MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             //MusicPlayer.putExtra("list", temp_song);
@@ -177,17 +178,6 @@ public class ListMusicAdapter extends BaseAdapter{
                     }
                 };
                 t.start();
-
-                /*try {
-                    MediaPlayer mediaPlayer = new MediaPlayer();
-                    System.out.println(url);
-                    mediaPlayer.setDataSource(url);
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                } catch (IOException e) {
-                    System.out.println("WTF");
-                    e.printStackTrace();
-                }*/
             }
         });
 
@@ -233,13 +223,6 @@ public class ListMusicAdapter extends BaseAdapter{
 
                                 //construct song info and pass it between activities
                                 if (position!=-1) {
-                                    String[] temp_song = new String[5];
-                                    temp_song[0]=(listMusic.get(position).getName());
-                                    temp_song[1]=(listMusic.get(position).getAuthor());
-                                    temp_song[2]=(listMusic.get(position).getImage());
-                                    temp_song[3]=url;
-                                    temp_song[4]="musicChosen";
-
                                     String r = null;
                                     try {
                                         r = MainActivity.sendRequest(MusicSelection.url_base+"recommendation", "{\"video\": \"" + (listMusic.get(position).getId()) + "\"}");
@@ -250,7 +233,7 @@ public class ListMusicAdapter extends BaseAdapter{
                                     ArrayList<Music> recommendation = new ArrayList<>();
                                     try {
                                         JSONArray ja = new JSONArray(r);
-
+                                        list_d=new ArrayList<>();
                                         for (int i=0; i<1; i++){
                                             //MUSIC
                                             JSONObject j = ja.getJSONObject(i);
@@ -261,11 +244,13 @@ public class ListMusicAdapter extends BaseAdapter{
                                             Music m = new Music(title, a, url_image);
                                             m.setId(id);
                                             recommendation.add(m);
+                                            list_d.add(getImage(url_image));
                                         }
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
 
+                                    ActivityHome.backToListening=false;
                                     Intent MusicPlayer = new Intent(context, TestServiceShit.class);
                                     MusicPlayer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     //MusicPlayer.putExtra("list", temp_song);
@@ -280,6 +265,20 @@ public class ListMusicAdapter extends BaseAdapter{
                         };
                         t.start();
                         return true;
+                    case R.id.discord_stream:
+                        ArrayList<Music> tmp = new ArrayList<>();
+                        tmp.add(listMusic.get(position));
+                        Thread t2 = new Thread() {
+                            public void run() {
+                                try {
+                                    Playlist_Layout.requestRicardoMilos(tmp, 0, 0);
+                                } catch (JSONException | RequestException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        };
+                        t2.start();
+                        return false;
                     case R.id.action_add_playlist:
                         System.out.println("Add to Playlist");
                         AlertDialog.Builder alertDialog = new AlertDialog.Builder(v.getContext());

@@ -23,7 +23,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +37,8 @@ public class GridAdapter extends ArrayAdapter<Music> {
     private LayoutInflater inflater;
     public volatile String url = null;
     public volatile int position=-1;
+
+    public volatile Drawable d;
 
     public GridAdapter(@NonNull Context context, ArrayList<Music> listMusic) {
         super(context, 0, listMusic);
@@ -103,6 +108,7 @@ public class GridAdapter extends ArrayAdapter<Music> {
                             ArrayList<Music> recommendation = new ArrayList<>();
                             try {
                                 JSONArray ja = new JSONArray(r);
+                                ListMusicAdapter.list_d=new ArrayList<>();
 
                                 for (int i=0; i<ja.length(); i++){
                                     //MUSIC
@@ -114,20 +120,21 @@ public class GridAdapter extends ArrayAdapter<Music> {
                                     Music m = new Music(title, a, url_image);
                                     m.setId(id);
                                     recommendation.add(m);
+                                    ListMusicAdapter.list_d.add(getImage(url_image));
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
 
-                            /*Intent MusicPlayer = new Intent(context, test.class);
-
+                            ActivityHome.backToListening=false;
+                            Intent MusicPlayer = new Intent(context, Test.class);
                             //MusicPlayer.putExtra("list", temp_song);
                             Bundle bundle = new Bundle();
                             bundle.putSerializable("recommendation", (Serializable)recommendation);
                             MusicPlayer.putExtra("bundle_recommendation", bundle);
                             MusicPlayer.putExtra("i", 0);
                             context.startActivity(MusicPlayer);
-                            ((Activity)view.getContext()).finish();*/
+                            ((Activity)view.getContext()).finish();
                         }
                     }
                 };
@@ -137,5 +144,27 @@ public class GridAdapter extends ArrayAdapter<Music> {
 
 
         return listitemView;
+    }
+
+    public Drawable getImage(String url){
+
+        Thread t = new Thread() {
+            public void run() {
+                InputStream is = null;
+                try {
+                    is = (InputStream) new URL(url).getContent();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                d = Drawable.createFromStream(is, "blurry image");
+            }
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return d;
     }
 }

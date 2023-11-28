@@ -3,6 +3,7 @@ package com.example.vibecloud;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +20,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +31,8 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
 
     private ArrayList<Music> listMusic = new ArrayList();
     Context context;
+
+    public volatile Drawable d;
 
     public ListTopSongsAdapter(Context context, ArrayList<Music> listMusic) {
         this.context = context;
@@ -116,6 +122,7 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                                 ArrayList<Music> recommendation = new ArrayList<>();
                                 try {
                                     JSONArray ja = new JSONArray(r);
+                                    ListMusicAdapter.list_d=new ArrayList<>();
 
                                     for (int i=0; i<ja.length(); i++){
                                         //MUSIC
@@ -127,12 +134,14 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
                                         Music m = new Music(title, a, url_image);
                                         m.setId(id);
                                         recommendation.add(m);
+                                        ListMusicAdapter.list_d.add(getImage(url_image));
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
 
-                                Intent MusicPlayer = new Intent(context, MusicListening.class);
+                                ActivityHome.backToListening=false;
+                                Intent MusicPlayer = new Intent(context, Test.class);
                                 //MusicPlayer.putExtra("list", temp_song);
                                 Bundle bundle = new Bundle();
                                 bundle.putSerializable("recommendation", (Serializable)recommendation);
@@ -224,5 +233,27 @@ public class ListTopSongsAdapter extends RecyclerView.Adapter<ListTopSongsAdapte
         public void onClick (View view){
 
         }
+    }
+
+    public Drawable getImage(String url){
+
+        Thread t = new Thread() {
+            public void run() {
+                InputStream is = null;
+                try {
+                    is = (InputStream) new URL(url).getContent();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                d = Drawable.createFromStream(is, "blurry image");
+            }
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return d;
     }
 }

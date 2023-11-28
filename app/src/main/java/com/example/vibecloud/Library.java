@@ -1,34 +1,30 @@
 package com.example.vibecloud;
 
+
+import static com.example.vibecloud.ActivityHome.setWindowFlag;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.KeyEvent;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.PopupMenu;
-import android.widget.SearchView;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -39,14 +35,20 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import eightbitlab.com.blurview.BlurView;
 import eightbitlab.com.blurview.RenderScriptBlur;
 
-public class search_test extends AppCompatActivity {
+public class Library extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener{
+
+    BottomNavigationView navigationView;
+    public volatile String json_return;
+
+    TextView username;
+
+    ArrayList<Playlist> listPlaylist;
 
     //###################### Nav #################################
     BlurView blurView;
@@ -63,142 +65,80 @@ public class search_test extends AppCompatActivity {
     //############################################################
 
     ServiceTest mService;
+    Intent service;
     static int index;
     public static boolean backToListening;
     public volatile int looping_trap;
 
     //############################################################
-
-    SearchView searchView;
-    public volatile String json_return;
-    private MediaPlayer mediaPlayer;
-    BottomNavigationView navigationView;
-    ArrayList<Music> listMusic = new ArrayList();
-
-    Intent service;
-
     @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.search:
+                Intent otherActivity = new Intent(getApplicationContext(), search_test.class);
+                startActivity(otherActivity);
+                finish();
+                return true;
+            case R.id.home:
+                Intent otherActivity2 = new Intent(getApplicationContext(), ActivityHome.class);
+                startActivity(otherActivity2);
+                finish();
+                return true;
+        }
+        return false;
+    }
+
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.search_panel);
-        service=new Intent(this, ServiceTest.class);
+        setContentView(R.layout.library_layout);
+
+        listPlaylist=new ArrayList();
 
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
-            ActivityHome.setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
         }
+
         if (Build.VERSION.SDK_INT >= 19) {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
 
         if (Build.VERSION.SDK_INT >= 21) {
-            ActivityHome.setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
 
-        searchView = findViewById(R.id.simpleSearchView);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.playlist_list);
 
-        listItems = findViewById(R.id.songs_list);
-        listItems.setAdapter(new ListMusicAdapter(this, listMusic));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
 
-        registerForContextMenu(listItems);
+        RecyclerViewAdapterPlaylist playlistAdapter = new RecyclerViewAdapterPlaylist(this, listPlaylist);
+        recyclerView.setAdapter(playlistAdapter);
+
         navigationView = findViewById(R.id.activity_main_bottom_navigation);
-        navigationView.setSelectedItemId(R.id.search);
+        navigationView.setSelectedItemId(R.id.library);
+
+        username = findViewById(R.id.username);
+        username.setText(MainActivity.name);
 
         navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.search:
+                        Intent otherActivity = new Intent(getApplicationContext(), search_test.class);
+                        startActivity(otherActivity);
+                        finish();
                         return true;
                     case R.id.home:
                         Intent otherActivity2 = new Intent(getApplicationContext(), ActivityHome.class);
                         startActivity(otherActivity2);
                         finish();
                         return true;
-                    case R.id.library:
-                        Intent otherActivity3 = new Intent(getApplicationContext(), Library.class);
-                        startActivity(otherActivity3);
-                        finish();
-                        return true;
                 }
-                return false;
-            }
-        });
-
-        searchView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchView.setIconified(false);
-            }
-        });
-        searchView.setOnKeyListener(new View.OnKeyListener() {
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                // TODO Auto-generated method stub
-                if (keyCode==KeyEvent.KEYCODE_ENTER) { //Whenever you got user click enter. Get text in edittext and check it equal test1. If it's true do your code in listenerevent of button3
-                    InputMethodManager inputManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                    inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                }
-                return false;
-
-            }
-         });
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                //listMusic=new ArrayList<Music>();
-                listMusic.clear();
-
-                String search = "{\"query\": \"" + s + "\"}";
-                String url = MusicSelection.url_base + "search";
-                System.out.println(search);
-                System.out.println(url);
-
-                json_return = null;
-
-                Thread t = new Thread() {
-                    public void run() {
-                        try {
-                            json_return = MainActivity.sendRequest(url, search);
-                        } catch (RequestException e) {
-                            e.printStackTrace();
-                        }
-                        System.out.println("JSON RETURN = " + json_return);
-                    }
-                };
-                t.start();
-                try {
-                    t.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                if(json_return == null)
-                    return false;
-
-                try {
-
-                    JSONArray ja = new JSONArray(json_return);
-                    for (int i=0; i<ja.length(); i++){
-                        //MUSIC
-                        JSONObject j = ja.getJSONObject(i);
-                        String title = j.getString("title");
-                        String url_image = j.getString("thumbnail");
-                        String a = j.getString("artists");
-                        String id = j.getString("link");
-                        Music m = new Music(title, a, url_image);
-                        m.setId(id);
-                        listMusic.add(m);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                searchView.clearFocus();
-                listItems.invalidateViews();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
                 return false;
             }
         });
@@ -208,21 +148,58 @@ public class search_test extends AppCompatActivity {
             setup_song_nav();
         }
         //##############################################################################
+        service=new Intent(this, ServiceTest.class);
+        faire();
     }
 
-    public void onBackPressed() {
-        Intent otherActivity;
-        if (listMusic.size() > 0) {
-            otherActivity = new Intent(getApplicationContext(), search_test.class);
-        } else {
-            otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+    public void faire() {
+        String m_Text = "Playlist 1";
+        String search = MainActivity.token;
+        String url = MusicSelection.url_base + "get_user_playlists";
+
+        System.out.println(search);
+        System.out.println(url);
+        //System.out.println(sub);
+
+        json_return = null;
+
+
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    json_return = MainActivity.sendRequest(url, search);
+                } catch (RequestException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                System.out.println("JSON RETURN = " + json_return);
+            }
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        startActivity(otherActivity);
-        finish();
+
+        if(json_return == null)
+            return;
+
+        try {
+            JSONArray ja = new JSONArray(json_return);
+            Playlist p = new Playlist("Add new playlist", "Add");
+            listPlaylist.add(p);
+            for (int i=0; i<ja.length(); i++){
+                JSONObject j = ja.getJSONObject(i);
+                String title = j.getString("playlist");
+                p = new Playlist(title, "");
+                listPlaylist.add(p);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
-
-    //######################### NAV NAV ###############################################
     public void setup_song_nav(){
         //###############################################
         authorName = findViewById(R.id.artistName);
@@ -233,14 +210,12 @@ public class search_test extends AppCompatActivity {
         pause_play = findViewById(R.id.pause_play_image);
         seekbar = findViewById(R.id.seekbar);
         blurView = findViewById(R.id.activity_main_blur);
-
         //###############################################
 
         //######## init ############
         index = mService.index_playlist;
         Music song = mService.recommendation.get(mService.index_playlist);
 
-        listItems.getLayoutParams().height=1700;
         blurView.setVisibility(View.VISIBLE);
         background();
         reset_FrontEnd();
@@ -475,4 +450,14 @@ public class search_test extends AppCompatActivity {
         super.onResume();
     }
 
+    public void onBackPressed() {
+        if (ActivityHome.serviceOn) {
+            timer.cancel();
+            ActivityHome.progressBar = seekbar.getProgress();
+        }
+        Intent otherActivity;
+        otherActivity = new Intent(getApplicationContext(), ActivityHome.class);
+        startActivity(otherActivity);
+        finish();
+    }
 }

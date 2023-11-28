@@ -76,6 +76,11 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".CurrentPlaylist_Discord"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
