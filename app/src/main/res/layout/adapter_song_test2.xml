@@ -49,7 +49,8 @@
                 android:layout_height="wrap_content"
                 android:text="@string/author_default_name"
                 android:layout_marginTop="5dp"
-                android:gravity="center"/>
+                android:gravity="center"
+                android:textColor="@color/nightWhite_or_dayBlack"/>
 
         </LinearLayout>
 

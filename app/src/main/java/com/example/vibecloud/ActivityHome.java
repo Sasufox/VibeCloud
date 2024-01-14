@@ -512,7 +512,7 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
                     Music song = mService.recommendation.get(mService.index_playlist);
                     String image_url = song.getImage();
                     background();
-                    blurBackground();
+                    //blurBackground();
                     reset_FrontEnd();
                     mService.isreco2.setValue(false);
                 }

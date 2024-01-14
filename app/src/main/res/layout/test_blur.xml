@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/main_blur_layout"
     android:background="@color/bordeaux"
+    tools:ignore="UseAppTint"
     >
 
     <eightbitlab.com.blurview.BlurView
@@ -45,7 +47,7 @@
                     android:text="@string/song_default_name"
                     android:gravity="center_horizontal"
                     android:layout_marginBottom="5dp"
-                    android:textColor="@color/black"
+                    android:textColor="@color/nightWhite_or_dayBlack"
                     android:textSize="26sp"
                     android:textStyle="bold"/>
 
@@ -59,7 +61,7 @@
                     android:layout_marginBottom="10dp"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"/>
+                    android:textColor="@color/nightWhite_or_dayBlack"/>
 
             </LinearLayout>
 
@@ -94,7 +96,7 @@
                         android:layout_weight="1"
                         android:layout_alignParentLeft="true"
                         android:layout_marginLeft="10dp"
-                        android:textColor="@color/black"
+                        android:textColor="@color/nightWhite_or_dayBlack"
                         />
 
                     <TextView
@@ -108,7 +110,7 @@
                         android:layout_alignParentRight="true"
                         android:gravity="right"
                         android:layout_marginRight="10dp"
-                        android:textColor="@color/black"
+                        android:textColor="@color/nightWhite_or_dayBlack"
                         />
                 </LinearLayout>
 
@@ -128,35 +130,41 @@
                     android:layout_width="wrap_content"
                     android:layout_height="85px"
                     android:layout_weight="4"
-                    android:src="@drawable/playlist"/>
+                    android:src="@drawable/playlist"
+                    android:tint="@color/nightWhite_or_dayBlack"/>
 
                 <ImageView
                     android:id="@+id/previous"
                     android:layout_width="wrap_content"
                     android:layout_height="100px"
                     android:layout_weight="4"
-                    android:src="@drawable/previous"/>
+                    android:src="@drawable/previous"
+                    android:tint="@color/nightWhite_or_dayBlack"/>
 
                 <ImageView
                     android:id="@+id/pause_play_image"
                     android:layout_width="wrap_content"
                     android:layout_height="150px"
                     android:layout_weight="4"
-                    android:src="@drawable/pause"/>
+                    android:src="@drawable/pause"
+                    android:tint="@color/nightWhite_or_dayBlack"/>
 
                 <ImageView
                     android:id="@+id/next"
                     android:layout_width="wrap_content"
                     android:layout_height="100px"
                     android:layout_weight="4"
-                    android:src="@drawable/next"/>
+                    android:src="@drawable/next"
+                    android:tint="@color/nightWhite_or_dayBlack"/>
 
                 <ImageView
                     android:id="@+id/repeat"
                     android:layout_width="wrap_content"
                     android:layout_height="85px"
                     android:layout_weight="4"
-                    android:src="@drawable/repeat"/>
+                    android:src="@drawable/repeat"
+                    android:tint="@color/nightWhite_or_dayBlack"
+                    />
 
             </LinearLayout>
 

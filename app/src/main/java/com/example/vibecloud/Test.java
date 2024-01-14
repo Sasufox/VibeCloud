@@ -477,7 +477,7 @@ public class Test extends AppCompatActivity{
         t = new Thread() {
             public void run() {
                 d = ListMusicAdapter.list_d.get(index_playlist);
-                d.setAlpha(180);
+                d.setAlpha(100);
                 blurBackground();
             }
         };

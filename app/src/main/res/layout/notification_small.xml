@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="60dp"
     android:background="@color/nightDark_or_dayWhite"
+    tools:ignore="UseAppTint"
     >
 
     <FrameLayout
@@ -17,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="0dp"
             >
 
             <ImageView
@@ -46,7 +47,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="2dp"
-                    android:textColor="@color/black"
+                    android:textColor="@color/nightWhite_or_dayBlack"
                     android:textSize="16sp"
                     android:singleLine="true"
                     tools:text="@string/app_name"
@@ -62,8 +63,7 @@
                     android:textSize="12sp"
                     android:singleLine="true"
                     tools:text="@string/app_name"
-                    android:textColor="@color/black"
-
+                    android:textColor="@color/nightWhite_or_dayBlack"
                     />
             </LinearLayout>
 
@@ -85,6 +85,7 @@
                     android:layout_gravity="center"
                     android:src="@drawable/previous"
                     android:layout_marginRight="10dp"
+                    android:tint="@color/nightWhite_or_dayBlack"
                     >
                 </ImageView>
 
@@ -95,6 +96,7 @@
                     android:layout_gravity="center"
                     android:src="@drawable/pause"
                     android:layout_marginRight="10dp"
+                    android:tint="@color/nightWhite_or_dayBlack"
                     >
                 </ImageView>
 
@@ -103,7 +105,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/next">
+                    android:src="@drawable/next"
+                    android:tint="@color/nightWhite_or_dayBlack">
                 </ImageView>
             </LinearLayout>
         </LinearLayout>

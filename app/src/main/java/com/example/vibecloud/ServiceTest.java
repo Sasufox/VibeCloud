@@ -267,25 +267,25 @@ public class ServiceTest extends Service {
         nextbutton.setAction("next");
         nextbutton.putExtra("notification", 0);
         nextbutton.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent nextIntent = PendingIntent.getBroadcast(this, 0, nextbutton, 0);
+        PendingIntent nextIntent = PendingIntent.getBroadcast(this, 0, nextbutton, PendingIntent.FLAG_IMMUTABLE);
 
         Intent previousbutton = new Intent(this, nextReceiver.class);
         previousbutton.setAction("previous");
         previousbutton.putExtra("notification", 0);
         previousbutton.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent previousIntent = PendingIntent.getBroadcast(this, 0, previousbutton, 0);
+        PendingIntent previousIntent = PendingIntent.getBroadcast(this, 0, previousbutton, PendingIntent.FLAG_IMMUTABLE);
 
         Intent pause_playbutton = new Intent(this, nextReceiver.class);
         pause_playbutton.setAction("pause_play");
         pause_playbutton.putExtra("notification", 0);
         pause_playbutton.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pause_playIntent = PendingIntent.getBroadcast(this, 0, pause_playbutton, 0);
+        PendingIntent pause_playIntent = PendingIntent.getBroadcast(this, 0, pause_playbutton, PendingIntent.FLAG_IMMUTABLE);
 
         Intent quitbutton = new Intent(this, nextReceiver.class);
         quitbutton.setAction("quit");
         quitbutton.putExtra("notification", 0);
         quitbutton.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent quitIntent = PendingIntent.getBroadcast(this, 0, quitbutton, 0);
+        PendingIntent quitIntent = PendingIntent.getBroadcast(this, 0, quitbutton, PendingIntent.FLAG_IMMUTABLE);
 
 
         builder = new NotificationCompat.Builder(this, "notification");

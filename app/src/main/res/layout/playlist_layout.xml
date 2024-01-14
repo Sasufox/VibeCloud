@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:background="@color/nightDark_or_dayWhite"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:ignore="UseAppTint">
 
     <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -60,7 +61,8 @@
                     android:layout_height="55dp"
                     android:gravity="center"
                     android:src="@drawable/play_botton"
-                    android:id="@+id/play_playlist">
+                    android:id="@+id/play_playlist"
+                    android:tint="@color/nightWhite_or_dayBlack">
                 </ImageButton>
 
                 <ImageButton
@@ -68,7 +70,8 @@
                     android:layout_height="55dp"
                     android:gravity="center"
                     android:src="@drawable/delete"
-                    android:id="@+id/delete_playlist">
+                    android:id="@+id/delete_playlist"
+                    android:tint="@color/nightWhite_or_dayBlack">
                 </ImageButton>
 
             </LinearLayout>
@@ -98,7 +101,8 @@
                     android:layout_marginRight="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/discord"
-                    android:id="@+id/discord"/>
+                    android:id="@+id/discord"
+                    android:tint="@color/nightWhite_or_dayBlack"/>
 
             </LinearLayout>
 
@@ -125,13 +129,15 @@
         android:layout_height="100dp"
         android:background="@color/nightVeryDark_or_dayLight"
         android:layout_above="@id/activity_main_bottom_navigation"
-        android:visibility="invisible">
+        android:visibility="invisible"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:id="@+id/main_blur_layout">
+            android:id="@+id/main_blur_layout"
+            android:layout_margin="1dp">
 
             <ImageView
                 android:id="@+id/songImage"
@@ -141,14 +147,15 @@
                 android:layout_marginRight="10dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_launcher"
-                android:layout_marginLeft="20dp"/>
+                android:layout_marginLeft="30dp"
+                />
 
 
             <LinearLayout
                 android:layout_width="75dp"
                 android:layout_height="50dp"
                 android:layout_centerVertical="true"
-                android:layout_marginRight="10dp"
+                android:layout_marginRight="0dp"
                 android:layout_toStartOf="@+id/layout_controls"
                 android:layout_toEndOf="@+id/imgWidgetAlbumArt"
                 android:orientation="vertical"
@@ -163,7 +170,7 @@
                     android:ellipsize="marquee"
                     android:marqueeRepeatLimit="marquee_forever"
                     android:singleLine="true"
-                    android:textColor="@color/black"
+                    android:textColor="@color/nightWhite_or_dayBlack"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="@string/app_name"
@@ -174,7 +181,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:singleLine="true"
-                    android:textColor="@color/black"
+                    android:textColor="@color/nightWhite_or_dayBlack"
                     android:textSize="12sp"
                     tools:text="@string/app_name"
                     android:maxLength="12"
@@ -183,9 +190,8 @@
 
             <SeekBar
                 android:id="@+id/seekbar"
-                android:layout_width="120dp"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="0dp"
                 android:progressDrawable="@drawable/seek_bar"
                 android:thumb="@drawable/seek_thumb"
                 >
@@ -194,12 +200,12 @@
 
             <LinearLayout
                 android:id="@+id/layout_controls"
-                android:layout_width="100dp"
+                android:layout_width="120dp"
                 android:layout_height="70dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="10dp"
-                android:layout_marginRight="20dp"
+                android:layout_marginRight="30dp"
                 android:gravity="center">
 
                 <ImageView
@@ -208,7 +214,9 @@
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:layout_marginRight="10dp"
-                    android:src="@drawable/previous"></ImageView>
+                    android:src="@drawable/previous"
+                    android:tint="@color/nightWhite_or_dayBlack"
+                    ></ImageView>
 
                 <ImageView
                     android:id="@+id/pause_play_image"
@@ -216,14 +224,18 @@
                     android:layout_height="40dp"
                     android:layout_gravity="center"
                     android:layout_marginRight="10dp"
-                    android:src="@drawable/pause"></ImageView>
+                    android:src="@drawable/pause"
+                    android:tint="@color/nightWhite_or_dayBlack"
+                    ></ImageView>
 
                 <ImageView
                     android:id="@+id/next"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/next"></ImageView>
+                    android:src="@drawable/next"
+                    android:tint="@color/nightWhite_or_dayBlack"
+                    ></ImageView>
             </LinearLayout>
         </LinearLayout>
     </eightbitlab.com.blurview.BlurView>
