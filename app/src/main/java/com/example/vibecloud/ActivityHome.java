@@ -96,6 +96,8 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.test);
+        blurView = findViewById(R.id.activity_main_blur);
+        blurView.setVisibility(View.INVISIBLE);
 
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21) {
             setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
@@ -288,7 +290,6 @@ public class ActivityHome extends AppCompatActivity implements BottomNavigationV
         next = findViewById(R.id.next);
         pause_play = findViewById(R.id.pause_play_image);
         seekbar = findViewById(R.id.seekbar);
-        blurView = findViewById(R.id.activity_main_blur);
         scrollView = findViewById(R.id.scrollview);
         //###############################################
 
